@@ -13,6 +13,14 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id'
       },
     },
+    location: {
+      allowNull: false,
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'Locations',
+        key: 'id'
+      }
+    }
   }, {});
   return User;
 };

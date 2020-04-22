@@ -1,58 +1,57 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Users', {
+    return queryInterface.createTable('Schedules', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      first_name: {},
-      last_name: {},
-      email: {
-        type: Sequelize.STRING
-      },
-      password: {
-        type: Sequelize.STRING
-      },
-      verified: {
-        type: Sequelize.BOOLEAN,
-        default: false
-      },
-      salt: {
-        allowNull: false,
-        type: Sequelize.STRING
-      },
-      role_id: {
-        allowNull: false,
-        type: Sequelize.INTEGER,
-        references: {
-          model: 'Roles',
-          key: 'id'
-        },
-      },
-      location: {
+      patienId: {
         allowNull: false,
         type: DataTypes.INTEGER,
         references: {
-          model: 'Locations',
+          model: 'Users',
           key: 'id'
-        }
+        },
+      },
+      scheduleType: {
+        type: Sequelize.STRING
+      },
+      doctorId: {
+        allowNull: false,
+        type: DataTypes.INTEGER,
+        references: {
+          model: 'Users',
+          key: 'id'
+        },
+      },
+      start_timestamp: {
+        type: Sequelize.DATE
+      },
+      end_timestamp: {
+        type: Sequelize.DATE
+      },
+      roomId: {
+        allowNull: false,
+        type: DataTypes.INTEGER,
+        references: {
+          model: 'Rooms',
+          key: 'id'
+        },
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-        default: Date.now()
+        type: Sequelize.DATE
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-        default: Date.now()
+        type: Sequelize.DATE
       }
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Users');
+    return queryInterface.dropTable('Schedules');
   }
 };
