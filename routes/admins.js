@@ -3,6 +3,7 @@ var router = express.Router();
 var PatientStatus = require('../models').PatientStatus;
 var User = require('../models').User;
 var JWT = require('../utils/jwt');
+var Email = require('../utils/email');
 
 router.get('/pendusers', JWT.authMiddleware, JWT.centerAdminMiddleware, async function (req, res, next) {
     try {
@@ -19,7 +20,7 @@ router.get('/pendusers', JWT.authMiddleware, JWT.centerAdminMiddleware, async fu
 });
 
 //accept  user approval
-router.post('/acceptuser', JWT.authMiddleware, JWT.centerAdminMiddleware, async function (req, res, next) {
+router.put('/acceptuser', JWT.authMiddleware, JWT.centerAdminMiddleware, async function (req, res, next) {
     try {
         const userId = req.body.userId;
         const user = await User.findOne({ where: { id: userId } });
@@ -30,7 +31,29 @@ router.post('/acceptuser', JWT.authMiddleware, JWT.centerAdminMiddleware, async 
 
         await PatientStatus.update({ refused_msg: 'a' }, { where: { user_id: userId } });
         //send email to user
-        res.json(patients);
+        Email.sendVerification(user.dataValues)
+        res.json({ success: true });
+    }
+    catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+router.put('/declineuser', JWT.authMiddleware, JWT.centerAdminMiddleware, async function (req, res, next) {
+    try {
+        const userId = req.body.userId;
+        const resonText = req.body.resonText;
+        const user = await User.findOne({ where: { id: userId } });
+        const patientStatus = await PatientStatus.findOne({ where: { refused_msg: 'p', user_id: user.id } });
+
+        if (user == null) return res.json({ success: false, message: 'No such user' });
+        if (patientStatus == null) return res.json({ success: false, message: 'User is not a patient or is not in pending state' });
+
+        await PatientStatus.update({ refused_msg: 'd', status_type: resonText }, { where: { user_id: userId } });
+        //send email to user
+        Email.sendDeclineMessage(user.dataValues.email, resonText);;
+        res.json({ success: true });
     }
     catch (error) {
         console.error(error);
