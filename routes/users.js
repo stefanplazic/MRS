@@ -3,11 +3,15 @@ var User = require('../models').User;
 var Role = require('../models').Role;
 var JWT = require('../utils/jwt');
 var Token = require('../models').Token;
+var PatientData = require('../models').PatientData;
+var PatientStatus = require('../models').PatientStatus;
+var Location = require('../models').Location;
+
 var router = express.Router();
 
 router.get('/', async function (req, res, next) {
   try {
-    let user = await User.create({ email: 'stefan.plazic@gmail.com', password: 'stefan', salt: 'me', verified: true })
+    let user = await User.create({ email: 'neko.plazic@gmail.com', password: 'neko', verified: true })
     res.json(user);
   }
   catch (error) {
@@ -18,10 +22,21 @@ router.get('/', async function (req, res, next) {
 /* Register user */
 router.post('/register', async function (req, res, next) {
   try {
-    //check if all fields are valida
-    //check if user with given email allready exists
-    //save to database
-    res.json(user);
+    let user = await User.findOne({ where: { email: req.body.user.email } });
+    const patientData = await PatientData.findOne({ where: { identification_number: req.body.patientData.identification_number } });
+    if (user != null) return res.json({ success: false, message: 'email is taken' });
+    if (patientData != null) return res.json({ success: false, message: 'jmbg is taken' });
+    //register user with patient data
+    const location = await Location.create(req.body.location);
+    const role = await Role.findOne({ where: { name: 'patient' } });
+    req.body.user.location = location.dataValues.id;
+    req.body.user.role_id = role.dataValues.id;
+    req.body.user.verified = false;
+    user = await User.create(req.body.user);
+    req.body.patientData.user_id = user.dataValues.id;
+    await PatientData.create(req.body.patientData);
+    await PatientStatus.create({ refused_msg: 'p', user_id: user.dataValues.id });
+    res.json({ success: true, message: 'User registered' });
   }
   catch (error) {
     console.error(error);
