@@ -35,7 +35,7 @@ router.post('/login', async function (req, res, next) {
     if (user == null) return res.json({ success: false, message: 'No such user' });
     if (user.verified == 0) return res.json({ success: false, message: 'Verify your email account' });
     const role = await Role.findOne({ where: { id: user.dataValues.role_id } });
-    const token = JWT.signJWT(user.id);
+    const token = JWT.signJWT(user.id, role.dataValues.name);
     return res.json({ success: true, jwt: token, role: role.dataValues.name });
   }
   catch (error) {

@@ -8,7 +8,7 @@ function authMiddleware(req, res, next) {
         }
         else {
             const decoded = jwt.verify(token, 'mysuper-secret');
-            req.user = decoded.data;
+            req.user = decoded;
             next();
         }
     }
@@ -17,7 +17,21 @@ function authMiddleware(req, res, next) {
     }
 };
 
+function centerAdminMiddleware(req, res, next) {
+    try {
+        const role = req.user.role;
+        if (role != 'clinic_center_admin')
+            throw new Error("Not an clinic center admin");
+        return next();
+
+    }
+    catch (err) {
+        next(err);
+    }
+};
+
 module.exports = {
     authMiddleware: authMiddleware,
-    signJWT: function (userId) { return jwt.sign({ userId: userId }, 'mysuper-secret'); },
+    centerAdminMiddleware: centerAdminMiddleware,
+    signJWT: function (userId, roleName) { return jwt.sign({ userId: userId, role: roleName }, 'mysuper-secret'); },
 };
