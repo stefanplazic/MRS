@@ -1,6 +1,6 @@
-import jwt from 'jsonwebtoken';
+var jwt = require('jsonwebtoken');
 
-export const authMiddleware = (req, res, next) => {
+function authMiddleware(req, res, next) {
     try {
         const token = req.headers["x-access-token"] || req.headers["authorization"];
         if (!token) {
@@ -15,4 +15,9 @@ export const authMiddleware = (req, res, next) => {
     catch (err) {
         next(err);
     }
+};
+
+module.exports = {
+    authMiddleware: authMiddleware,
+    signJWT: function (userId) { return jwt.sign({ userId: userId }, 'mysuper-secret'); },
 };

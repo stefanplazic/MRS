@@ -20,10 +20,6 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         default: false
       },
-      salt: {
-        allowNull: false,
-        type: Sequelize.STRING
-      },
       role_id: {
         allowNull: false,
         type: Sequelize.INTEGER,
