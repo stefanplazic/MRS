@@ -2,6 +2,7 @@ var express = require('express');
 var User = require('../models').User;
 var Role = require('../models').Role;
 var JWT = require('../utils/jwt');
+var Token = require('../models').Token;
 var router = express.Router();
 
 router.get('/', async function (req, res, next) {
@@ -27,6 +28,7 @@ router.post('/register', async function (req, res, next) {
     next(error);
   }
 });
+
 /* Login user */
 router.post('/login', async function (req, res, next) {
   try {
@@ -43,4 +45,21 @@ router.post('/login', async function (req, res, next) {
     next(error);
   }
 });
+
+/* Verify new user*/
+router.get('/verify/:token', async function (req, res, next) {
+  try {
+    const token = req.params.token;
+    const myToken = await Token.findOne({ where: { code: token } });
+    if (myToken == null) return res.json({ success: false, message: 'No such token' });
+    await User.update({ verified: true }, { where: { id: myToken.dataValues.user_id } });
+    Token.destroy({ where: { id: myToken.dataValues.id } });
+    return res.json({ success: true, message: 'You are verified now' });
+  }
+  catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
 module.exports = router;

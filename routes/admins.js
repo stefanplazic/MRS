@@ -4,6 +4,8 @@ var PatientStatus = require('../models').PatientStatus;
 var User = require('../models').User;
 var JWT = require('../utils/jwt');
 var Email = require('../utils/email');
+var TokenHelper = require('../utils/token');
+var Token = require('../models').Token;
 
 router.get('/pendusers', JWT.authMiddleware, JWT.centerAdminMiddleware, async function (req, res, next) {
     try {
@@ -30,8 +32,9 @@ router.put('/acceptuser', JWT.authMiddleware, JWT.centerAdminMiddleware, async f
         if (patientStatus == null) return res.json({ success: false, message: 'User is not a patient or is not in pending state' });
 
         await PatientStatus.update({ refused_msg: 'a' }, { where: { user_id: userId } });
+        const token = await Token.create({ code: TokenHelper.tokenGenerate(20), user_id: userId });
         //send email to user
-        Email.sendVerification(user.dataValues)
+        Email.sendVerification(user.dataValues, token.dataValues.code);
         res.json({ success: true });
     }
     catch (error) {

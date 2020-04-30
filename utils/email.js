@@ -14,8 +14,8 @@ var transporter = nodemailer.createTransport({
 });
 
 /*function for sending verification emails*/
-exports.sendVerification = function (user) {
-    var link = 'http://localhost:3000/users/verify?username=' + user.email + '&token=';
+exports.sendVerification = function (user, token) {
+    var link = 'http://localhost:3000/users/verify/' + token;
 
     let mailOptions = {
         from: '"MRS Hospital 👻" nekiludtim@gmail.com', // sender address
