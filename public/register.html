@@ -19,12 +19,95 @@
     <title>Register page</title>
 
     <script>
+        checkIfLogged();
+        function checkIfLogged() {
+            const userData = localStorage.getItem('userData', false);
+            if (userData != false)
+                redirect(JSON.parse(userData).role);
+
+        }
+        var cordiantes = null;
+        $(document).ready(function () {
+            $('#formid').on('submit', function (e) {
+                e.preventDefault();
+                register();
+            });
+        });
+
         async function register() {
+            const errorAlert = $('#errorAlert');
+            if (cordiantes == null) {
+                errorAlert.text("Choose cordinates on map");
+                errorAlert.show();
+                return;
+            }
             const email = document.getElementById('inputEmail').value;
             const password = document.getElementById('inputPassword').value;
-            fetch('http://example.com/movies.json')
-                .then(response => response.json())
-                .then(data => console.log(data));
+            const inputFN = document.getElementById('inputFN').value;
+            const inputLN = document.getElementById('inputLN').value;
+            const inputAddress = document.getElementById('inputAddress').value;
+            const inputCity = document.getElementById('inputCity').value;
+            const inputState = document.getElementById('inputState').value;
+            const inputPhone = document.getElementById('inputPhone').value;
+            const inputNum = document.getElementById('inputNum').value;
+            const inputPassword = document.getElementById('inputPassword').value;
+            const inputRepeat = document.getElementById('inputRepeat').value;
+
+            const url = 'http://localhost:3000/users/register';
+            const data = {
+                user: { email: email, password: password, fName: inputFN, lName: inputLN },
+                location: { address: inputAddress, city: inputCity, state: inputState, lat: cordiantes[0], lng: cordiantes[1] },
+                patientData: { phone: inputPhone, identification_number: inputNum }
+            };
+            //check passwords
+            if (inputPassword != inputRepeat) {
+
+                errorAlert.text("Passwords do not match");
+                errorAlert.show();
+                return;
+            }
+            errorAlert.hide();
+
+            fetch(url, {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    console.log(result);
+                    proccess(result);
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
+
+        };
+        function proccess(response) {
+            const errorAlert = $('#errorAlert');
+            if (!response.success) {
+                errorAlert.text(response.message);
+                errorAlert.show();
+                return;
+            }
+            errorAlert.hide();
+            alert(response.message);
+        }
+
+        function redirect(role) {
+            switch (role) {
+                case 'patient':
+                    console.log('Patient');
+                    break;
+                case 'admin': console.log('Admin');
+                    break;
+                default: console.log("dont know");
+            }
         }
     </script>
 </head>
@@ -32,88 +115,142 @@
 <body>
     <div class="container">
         <h3 class="text-center">Register page</h3>
-        <form>
+        <form id="formId">
             <div class="form-group">
                 <label for="inputEmail">Email address</label>
-                <input type="email" class="form-control" id="inputEmail" aria-describedby="emailHelp"
+                <input type="email" required class="form-control" id="inputEmail" aria-describedby="emailHelp"
                     placeholder="Enter email">
 
             </div>
             <div class="form-group">
                 <label for="inputFN">First name</label>
-                <input type="text" class="form-control" id="inputFN" placeholder="Enter first name">
+                <input type="text" class="form-control" required minlength="4" id="inputFN"
+                    placeholder="Enter first name">
 
             </div>
             <div class="form-group">
                 <label for="inputLN">Last name</label>
-                <input type="text" class="form-control" id="inputLN" placeholder="Enter last name">
+                <input type="text" class="form-control" class="form-control" required minlength="4" id="inputLN"
+                    placeholder="Enter last name">
 
             </div>
-            <!--
+
             <div class="form-group">
                 <label for="inputAddress">Address</label>
-                <input type="text" class="form-control" id="inputAddress" placeholder="Enter address">
+                <input type="text" class="form-control" class="form-control" required minlength="8" class="form-control"
+                    required minlength="8" id="inputAddress" placeholder="Enter address">
 
             </div>
             <div class="form-group">
                 <label for="inputCity">City</label>
-                <input type="text" class="form-control" id="inputCity" placeholder="Enter city">
+                <input type="text" class="form-control" class="form-control" required minlength="2" id="inputCity"
+                    placeholder="Enter city">
 
             </div>
             <div class="form-group">
                 <label for="inputState">State</label>
-                <input type="text" class="form-control" id="inputState" placeholder="Enter state">
+                <input type="text" class="form-control" class="form-control" required minlength="4" id="inputState"
+                    placeholder="Enter state">
 
             </div>
-            -->
 
             <div class="form-group">
                 <label for="inputPhone">Phone</label>
-                <input type="text" class="form-control" id="inputPhone" placeholder="Enter phone">
+                <input type="text" class="form-control" class="form-control" required minlength="8" id="inputPhone"
+                    placeholder="Enter phone">
 
             </div>
 
             <div class="form-group">
                 <label for="inputNum">Identification Number</label>
-                <input type="text" class="form-control" id="inputNum" placeholder="Enter number">
+                <input type="text" class="form-control" class="form-control" required minlength="8" id="inputNum"
+                    placeholder="Enter number">
 
             </div>
 
             <div class="form-group">
                 <label for="inputPassword">Password</label>
-                <input type="password" class="form-control" id="inputPassword" placeholder="Password">
+                <input type="password" class="form-control" class="form-control" required minlength="4"
+                    id="inputPassword" placeholder="Password">
             </div>
             <div class="form-group">
                 <label for="inputRepeat">Repeat Password</label>
-                <input type="password" class="form-control" id="inputRepeat" placeholder="Repeat Password">
+                <input type="password" class="form-control" class="form-control" required minlength="4" id="inputRepeat"
+                    placeholder="Repeat Password">
             </div>
 
             <div id="map" style=" height: 400px" class="w-100"></div>
-
-            <button type="button" class="btn btn-primary" onclick="register();">Register</button>
+            <div class="alert alert-danger alert-dismissible" id="errorAlert">
+                Error text
+            </div>
+            <button type="button" class="btn btn-primary" onclick="register()">Register</button>
         </form>
     </div>
 
-    <script src="https://api-maps.yandex.ru/2.1/?apikey=8415dc20-6ac1-40e8-b55c-afcfa7e3b7fb key&lang=en_US"
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=8415dc20-6ac1-40e8-b55c-afcfa7e3b7fb&lang=en_US"
         type="text/javascript">
         </script>
 
     <script type="text/javascript">
-        // The ymaps.ready() function will be called when
-        // all the API components are loaded and the DOM tree is generated.
+        $('#errorAlert').hide();
         ymaps.ready(init);
         function init() {
-            // Creating the map.    
-            var myMap = new ymaps.Map("map", {
-                // The map center coordinates.
-                // Default order: “latitude, longitude”.
-                // To not manually determine the map center coordinates,
-                // use the Coordinate detection tool.
-                center: [55.76, 37.64],
-                // Zoom level. Acceptable values:
-                // from 0 (the entire world) to 19.
-                zoom: 7
+            var myPlacemark,
+                myMap = new ymaps.Map('map', {
+                    center: [55.753994, 37.622093],
+                    zoom: 9
+                }, {
+                    searchControlProvider: 'yandex#search'
+                });
+            // Listening for a click on the map
+            myMap.events.add('click', function (e) {
+                var coords = e.get('coords');
+                cordiantes = coords;
+                // Moving the placemark if it was already created
+                if (myPlacemark) {
+                    myPlacemark.geometry.setCoordinates(coords);
+                }
+                // Otherwise, creating it.
+                else {
+                    myPlacemark = createPlacemark(coords);
+                    myMap.geoObjects.add(myPlacemark);
+                    // Listening for the dragging end event on the placemark.
+                    myPlacemark.events.add('dragend', function () {
+                        getAddress(myPlacemark.geometry.getCoordinates());
+                    });
+                }
+                getAddress(coords);
             });
+
+            // Creating a placemark
+            function createPlacemark(coords) {
+                return new ymaps.Placemark(coords, {
+                    iconCaption: 'searching...'
+                }, {
+                    preset: 'islands#violetDotIconWithCaption',
+                    draggable: true
+                });
+            }
+
+            // Determining the address by coordinates (reverse geocoding).
+            function getAddress(coords) {
+                myPlacemark.properties.set('iconCaption', 'searching...');
+                ymaps.geocode(coords).then(function (res) {
+                    var firstGeoObject = res.geoObjects.get(0);
+                    myPlacemark.properties
+                        .set({
+                            // Forming a string with the object's data.
+                            iconCaption: [
+                                // The name of the municipality or the higher territorial-administrative formation.
+                                firstGeoObject.getLocalities().length ? firstGeoObject.getLocalities() : firstGeoObject.getAdministrativeAreas(),
+                                // Getting the path to the toponym; if the method returns null, then requesting the name of the building.
+                                firstGeoObject.getThoroughfare() || firstGeoObject.getPremise()
+                            ].filter(Boolean).join(', '),
+                            // Specifying a string with the address of the object as the balloon content.
+                            balloonContent: firstGeoObject.getAddressLine()
+                        });
+                });
+            }
         }
     </script>
 </body>
