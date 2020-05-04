@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Login page</title>
+</head>
+<script>
+    checkIfLogged();
+    function checkIfLogged() {
+        const userData = localStorage.getItem('userData', false);
+        if (userData != false)
+            redirect(JSON.parse(userData).role);
+
+    }
+    async function login() {
+        const email = document.getElementById('inputEmail').value;
+        const password = document.getElementById('inputPassword').value;
+        const data = { email: email, password: password };
+        const url = 'http://localhost:3000/users/login'
+        fetch(url, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+            .then(function (result) {
+                return result.json();
+            })
+            .then(function (result) {
+                proccess(result);
+            })
+            .catch(function (err) {
+                console.error(err);
+            });
+    }
+    function proccess(response) {
+        if (!response.success) {
+            $('#errorAlert').show();
+            return;
+        }
+        $('#errorAlert').hide();
+        const jwt = response.jwt;
+        const role = response.role;
+        localStorage.setItem('userData', JSON.stringify({ jwt: jwt, role: role }));
+        //redirect
+        redirect(role);
+    }
+    function redirect(role) {
+        switch (role) {
+            case 'patient':
+                console.log('Patient');
+                break;
+            case 'admin': console.log('Admin');
+                break;
+            default: console.log("dont know");
+        }
+    }
+</script>
+
+<body>
+    <div class="container">
+        <h3 class="text-center">Login page</h3>
+        <form>
+            <div class="form-group">
+                <label for="inputEmail">Email address</label>
+                <input type="email" class="form-control" id="inputEmail" aria-describedby="emailHelp"
+                    placeholder="Enter email">
+
+            </div>
+            <div class="form-group">
+                <label for="InputPassword">Password</label>
+                <input type="password" class="form-control" id="inputPassword" placeholder="Password">
+            </div>
+
+            <div class="alert alert-danger alert-dismissible" id="errorAlert">
+                <strong>Wrong email and password combination</strong>
+            </div>
+
+            <button type="button" class="btn btn-primary" onclick="login();">Login</button>
+        </form>
+    </div>
+    <script>
+        $('#errorAlert').hide();
+    </script>
+</body>
+
+</html>

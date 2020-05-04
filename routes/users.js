@@ -11,8 +11,7 @@ var router = express.Router();
 
 router.get('/', async function (req, res, next) {
   try {
-    let user = await User.create({ email: 'neko.plazic@gmail.com', password: 'neko', verified: true })
-    res.json(user);
+    res.json({ message: 'HI', success: true });
   }
   catch (error) {
     console.error(error);
