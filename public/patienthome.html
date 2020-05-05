@@ -17,6 +17,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Home page</title>
+    <script>
+        $(document).ready(function () {
+            init();
+        });
+        function init() {
+            $("#errorAlert").hide();
+        }
+        async function getPatienProfile() {
+
+        }
+    </script>
 </head>
 <script>
     checkIfLogged();
@@ -37,10 +48,106 @@
 
 <body>
     <div class="container">
-        <h3 class="text-center">Home page</h3>
+        <h3 class="text-center">Patient Home page</h3>
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#home">Profile</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#menu1">Search doctors</a>
+            </li>
+        </ul>
 
+        <!-- Tab panes -->
+        <div class="tab-content">
+            <div id="home" class="container tab-pane active"><br>
+                <h3>Update your profile</h3>
+                <form id="formId">
+
+                    <div class="form-group">
+                        <label for="inputFN">First name</label>
+                        <input type="text" class="form-control" required minlength="4" id="inputFN"
+                            placeholder="Enter first name">
+
+                    </div>
+                    <div class="form-group">
+                        <label for="inputLN">Last name</label>
+                        <input type="text" class="form-control" class="form-control" required minlength="4" id="inputLN"
+                            placeholder="Enter last name">
+
+                    </div>
+                    <div class="form-group">
+                        <label for="inputEmail">Email address</label>
+                        <input type="email" readonly required class="form-control" id="inputEmail"
+                            aria-describedby="emailHelp" placeholder="Enter email">
+
+                    </div>
+                    <div class="form-group">
+                        <label for="inputAddress">Address</label>
+                        <input type="text" class="form-control" class="form-control" required minlength="8"
+                            class="form-control" required minlength="8" id="inputAddress" placeholder="Enter address">
+
+                    </div>
+                    <div class="form-group">
+                        <label for="inputCity">City</label>
+                        <input type="text" class="form-control" class="form-control" required minlength="2"
+                            id="inputCity" placeholder="Enter city">
+
+                    </div>
+                    <div class="form-group">
+                        <label for="inputState">State</label>
+                        <input type="text" class="form-control" class="form-control" required minlength="4"
+                            id="inputState" placeholder="Enter state">
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputPhone">Phone</label>
+                        <input type="text" class="form-control" class="form-control" required minlength="8"
+                            id="inputPhone" placeholder="Enter phone">
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputNum">Identification Number</label>
+                        <input type="text" readonly class="form-control" class="form-control" required minlength="8"
+                            id="inputNum" placeholder="Enter number">
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputPassword">Password</label>
+                        <input type="password" class="form-control" class="form-control" required minlength="4"
+                            id="inputPassword" placeholder="Password">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputRepeat">Repeat Password</label>
+                        <input type="password" class="form-control" class="form-control" required minlength="4"
+                            id="inputRepeat" placeholder="Repeat Password">
+                    </div>
+                    <div class="alert alert-danger alert-dismissible" id="errorAlert">
+                        Error text
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="">Update profile data</button>
+                </form>
+            </div>
+
+            <!--SEARCH DOCTORS-->
+            <div id="menu1" class="container tab-pane fade"><br>
+                <h3>Menu 1</h3>
+                <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+                    consequat.</p>
+            </div>
+
+        </div>
     </div>
-
+    <script>
+        $(document).ready(function () {
+            $(".nav-tabs a").click(function () {
+                $(this).tab('show');
+            });
+        });
+    </script>
 </body>
 
 </html>
