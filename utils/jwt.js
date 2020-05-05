@@ -30,8 +30,22 @@ function centerAdminMiddleware(req, res, next) {
     }
 };
 
+function patientMiddleware(req, res, next) {
+    try {
+        const role = req.user.role;
+        if (role != 'patient')
+            throw new Error("Not a patient");
+        return next();
+
+    }
+    catch (err) {
+        next(err);
+    }
+};
+
 module.exports = {
     authMiddleware: authMiddleware,
     centerAdminMiddleware: centerAdminMiddleware,
+    patientMiddleware: patientMiddleware,
     signJWT: function (userId, roleName) { return jwt.sign({ userId: userId, role: roleName }, 'mysuper-secret'); },
 };
