@@ -19,10 +19,12 @@
     <title>Login page</title>
 </head>
 <script>
-    checkIfLogged();
+    $(document).ready(function () {
+        checkIfLogged();
+    });
     function checkIfLogged() {
-        const userData = localStorage.getItem('userData', false);
-        if (userData != false)
+        const userData = localStorage.getItem('userData');
+        if (userData != null)
             redirect(JSON.parse(userData).role);
 
     }
