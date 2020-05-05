@@ -18,33 +18,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Home page</title>
     <script>
+        checkIfLogged();
         $(document).ready(function () {
             init();
+            getPatienProfile();
         });
         function init() {
-            $("#errorAlert").hide();
+            hideError();
         }
         async function getPatienProfile() {
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/profileData';
+            fetch(url, { method: 'GET', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        showError(result.message);
+                        return;
+                    }
+                    hideError();
+                    window.profileData = result.userData;
+                    setProfileForm();
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
+        }
 
+        //function for puting values inside profile form
+        function setProfileForm() {
+            const user = window.profileData.user;
+            const location = window.profileData.location;
+            const patientData = window.profileData.patientdata;
+
+            $('#inputFN').val(user.fName);
+            $('#inputLN').val(user.lName);
+            $('#inputEmail').val(user.email);
+            $('#inputPassword').val(user.password);
+            $('#inputRepeat').val(user.password);
+            $('#inputAddress').val(location.address);
+            $('#inputCity').val(location.city);
+            $('#inputState').val(location.state);
+            $('#inputNum').val(patientData.phone);
+            $('#inputPhone').val(patientData.identification_number);
+        }
+
+        function showError(error) {
+            $('#errorAlert').text(error).show();
+        }
+
+        function hideError() {
+            $("#errorAlert").hide();
+        }
+
+        function checkIfLogged() {
+            const userData = localStorage.getItem('userData', false);
+            redirect(JSON.parse(userData));
+
+        }
+
+        function redirect(userData) {
+            if ((userData != false) && userData.role != 'patient') {
+                window.location.href = '/';
+                return;
+            }
         }
     </script>
 </head>
-<script>
-    checkIfLogged();
-    function checkIfLogged() {
-        const userData = localStorage.getItem('userData', false);
-        redirect(JSON.parse(userData));
-
-    }
-
-    function redirect(userData) {
-        if ((userData != false) && userData.role != 'patient') {
-            window.location.href = '/';
-            return
-        }
-
-    }
-</script>
 
 <body>
     <div class="container">

@@ -7,7 +7,7 @@ var PatientData = require('../models').PatientData;
 var Location = require('../models').Location;
 
 /*GET USER PROFILE DATA INFO*/
-router.get('/profileDate', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+router.get('/profileData', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
     try {
         const userId = req.user.userId;
         //load data from database
@@ -27,7 +27,7 @@ router.get('/profileDate', JWT.authMiddleware, JWT.patientMiddleware, async func
 
         //pack the data for return
         let userData = {};
-        userData.user = { email: user.email, fName: user.fName, lName: user.lName };
+        userData.user = { email: user.email, fName: user.fName, lName: user.lName, password: user.password };
         userData.location = { address: location.address, city: location.city, state: location.state, lat: location.lat, lng: location.lng };
         userData.patientdata = { phone: patientdata.phone, identification_number: patientdata.identification_number };
 
