@@ -30,6 +30,9 @@
                 e.preventDefault();
                 updateProfile();
             });
+            $('#clinicListForm').on('submit', function (e) {
+                e.preventDefault();
+            });
         }
         async function getPatienProfile() {
             const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
@@ -140,7 +143,7 @@
                 <a class="nav-link active" href="#home">Profile</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#menu1">Search doctors</a>
+                <a class="nav-link" href="#clinics">Search clinics</a>
             </li>
         </ul>
 
@@ -218,11 +221,37 @@
                 </form>
             </div>
 
-            <!--SEARCH DOCTORS-->
-            <div id="menu1" class="container tab-pane fade"><br>
-                <h3>Menu 1</h3>
-                <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-                    consequat.</p>
+            <!--SEARCH CLINICS-->
+            <div id="clinics" class="container tab-pane fade"><br>
+
+                <form id="clinicListForm">
+                    <label for="appointmentSelect">Type of appointment</label>
+                    <div class="form-group">
+
+                        <select class="form-control" id="appointmentSelect">
+                            <option value="" disabled selected>Choose your option</option>
+                            <option value="1">Option 1</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clinicName">Type clinic name</label>
+                        <input type="text" class="form-control" class="form-control" required minlength="3"
+                            id="clinicName" placeholder="Search by clinic name">
+                    </div>
+
+                    <label for="rateStatus">Sort by ratting status</label>
+                    <div class="form-group">
+
+                        <select class="form-control" id="rateStatus">
+                            <option value="1" selected>Ascending</option>
+                            <option value="2">Descending</option>
+                        </select>
+                    </div>
+
+
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </form>
             </div>
 
         </div>
