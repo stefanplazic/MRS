@@ -13,6 +13,8 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.js"></script>
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -23,6 +25,7 @@
             checkIfLogged();
             init();
             getPatienProfile();
+            getClinicList();
         });
         function init() {
             hideError();
@@ -53,6 +56,34 @@
                 .catch(function (err) {
                     console.error(err);
                 });
+        }
+        //get clinics
+        async function getClinicList() {
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/clinics';
+            fetch(url, { method: 'GET', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        throw new Error(result.message);
+                    }
+                    window.clinics = addLinikToClinics(result.clinics);
+                    //set data source to table
+                    $('#clinicTable').bootstrapTable({ data: window.clinics });
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
+        }
+        //helper method
+        function addLinikToClinics(clinicsList) {
+            const domain = window.location.origin + '/viewclinic.html?id=';
+            for (let clinic of clinicsList) {
+                clinic.link = "<a href=" + domain + clinic.id + '>Link</a>';
+            }
+            return clinicsList;
         }
 
         //function for puting values inside profile form
@@ -244,18 +275,27 @@
                             id="clinicName" placeholder="Search by clinic name">
                     </div>
 
-                    <label for="rateStatus">Sort by ratting status</label>
-                    <div class="form-group">
-
-                        <select class="form-control" id="rateStatus">
-                            <option value="1" selected>Ascending</option>
-                            <option value="2">Descending</option>
-                        </select>
-                    </div>
-
-
                     <button type="submit" class="btn btn-primary">Search</button>
+                    <button type="reset" class="btn btn-secondary">Reset</button>
                 </form>
+                <br />
+                <br />
+                <br />
+                <h3>Search results</h3>
+                <br />
+                <!--TABLE-->
+                <table class="table" id="clinicTable">
+                    <thead>
+                        <tr>
+                            <th scope="col" data-field="name">Clinic name</th>
+                            <th scope="col" data-field="address">Address</th>
+                            <th scope="col" data-field="link">Visit</th>
+                        </tr>
+                    </thead>
+
+                </table>
+                <!--END OF TABLE-->
+
             </div>
 
         </div>

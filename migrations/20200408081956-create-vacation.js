@@ -18,7 +18,7 @@ module.exports = {
       },
       vacation_date: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         default: Date.now()
       },
       createdAt: {

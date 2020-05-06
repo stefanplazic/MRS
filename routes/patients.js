@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 var JWT = require('../utils/jwt');
+var db = require('../models');
+const { QueryTypes } = require('sequelize');
 
 var User = require('../models').User;
 var PatientData = require('../models').PatientData;
@@ -66,4 +68,36 @@ router.put('/updateProfile', JWT.authMiddleware, JWT.patientMiddleware, async fu
     }
 });
 
+/*GET CLINIC LIST*/
+router.get('/clinics', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+    try {
+        const [results] = await db.sequelize.query("SELECT Clinics.id,Clinics.name,(SELECT  CONCAT_WS(', ',Locations.address,Locations.city,Locations.state) from Locations WHERE Locations.id = Clinics.location) as address from Clinics;");
+        res.json({ success: true, clinics: results });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+
+/*GET FILTERED CLINIC LIST*/
+router.get('/filterClinics', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+    try {
+        const name = req.query.name;
+        const appointment = req.query.appointment;
+        const date = req.query.date;
+
+        if (date == undefined || appointment == undefined || date == undefined) return res.json({ success: false, message: 'Enter all params' });
+        const results = await db.sequelize.query("SELECT Clinics.id,Clinics.name,(SELECT  CONCAT_WS(', ',Locations.address,Locations.city,Locations.state) from Locations WHERE Locations.id = Clinics.location) as address from Clinics WHERE Clinics.id IN (SELECT DoctorData.clinic_id from DoctorData INNER JOIN DoctorSpecializations on DoctorData.user_id = DoctorSpecializations.doctor_id INNER JOIN Vacations ON Vacations.doctor_id = DoctorData.user_id WHERE DoctorSpecializations.id = :appointmentType AND Vacations.vacation_date != :searchDate) AND Clinics.name LIKE :clinicName;"
+            , {
+                replacements: { searchDate: date, appointmentType: appointment, clinicName: name + '%' },
+                type: QueryTypes.SELECT
+            });
+
+        res.json({ success: true, clinics: results });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+//SELECT Clinics.id,Clinics.name,(SELECT  CONCAT(Locations.address,Locations.city,Locations.state) from Locations WHERE Locations.id = Clinics.location) as address from Clinics WHERE Clinics.id IN (SELECT DoctorData.clinic_id from DoctorData INNER JOIN DoctorSpecializations on DoctorData.user_id = DoctorSpecializations.doctor_id INNER JOIN Vacations ON Vacations.doctor_id = DoctorData.user_id WHERE DoctorSpecializations.id = 1 AND Vacations.vacation_date != '0000-00-00');
 module.exports = router;
