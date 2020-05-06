@@ -35,7 +35,35 @@
             });
             $('#clinicListForm').on('submit', function (e) {
                 e.preventDefault();
+                searchClinics();
             });
+            $('#clinicListForm').on('reset', function (e) {
+                getClinicList();
+            });
+            getSpecialisations();
+        }
+
+        async function getSpecialisations() {
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/specialisation';
+            fetch(url, { method: 'GET', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        return;
+                    }
+                    const specialisations = result.specialisations;
+                    var listitems = '';
+                    for (const specialisation of specialisations) {
+                        listitems += '<option value=' + specialisation.id + '>' + specialisation.name + '</option>';
+                    }
+                    $('#appointmentSelect').append(listitems);
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
         }
         async function getPatienProfile() {
             const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
@@ -57,6 +85,33 @@
                     console.error(err);
                 });
         }
+
+        async function searchClinics() {
+            const date = $('#clinicDate').val();
+            const name = $('#clinicName').val();
+            const appointmentSelect = $('#appointmentSelect').val();
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/filterClinics?name=' + name + '&date=' + date + '&appointment=' + appointmentSelect;
+
+            fetch(url, { method: 'GET', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        throw new Error(result.message);
+                    }
+                    window.clinics = addLinikToClinics(result.clinics);
+                    console.log(window.clinics);
+                    //set data source to table
+                    $('#clinicTable').bootstrapTable('destroy');
+                    $('#clinicTable').bootstrapTable({ data: window.clinics });
+
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
+        }
         //get clinics
         async function getClinicList() {
             const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
@@ -71,7 +126,9 @@
                     }
                     window.clinics = addLinikToClinics(result.clinics);
                     //set data source to table
+                    $('#clinicTable').bootstrapTable('destroy');
                     $('#clinicTable').bootstrapTable({ data: window.clinics });
+
                 })
                 .catch(function (err) {
                     console.error(err);
@@ -260,17 +317,16 @@
                     <div class="form-group">
 
                         <select class="form-control" id="appointmentSelect">
-                            <option value="" disabled selected>Choose your option</option>
-                            <option value="1">Option 1</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label for="clinicDate">Appointment Date</label>
-                        <input type="date" id="clinicDate" min="1000-01-01" max="3000-12-31" class="form-control">
+                        <input type="date" id="clinicDate" required min="1000-01-01" max="3000-12-31"
+                            class="form-control">
                     </div>
                     <div class="form-group">
-                        <label for="clinicName">Type clinic name</label>
+                        <label for="clinicName">clinic name</label>
                         <input type="text" class="form-control" class="form-control" required minlength="3"
                             id="clinicName" placeholder="Search by clinic name">
                     </div>

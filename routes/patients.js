@@ -2,11 +2,12 @@ var express = require('express');
 var router = express.Router();
 var JWT = require('../utils/jwt');
 var db = require('../models');
-const { QueryTypes } = require('sequelize');
+var { QueryTypes } = require('sequelize');
 
 var User = require('../models').User;
 var PatientData = require('../models').PatientData;
 var Location = require('../models').Location;
+var Specialization = require('../models').Specialization;
 
 /*GET USER PROFILE DATA INFO*/
 router.get('/profileData', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
@@ -94,6 +95,17 @@ router.get('/filterClinics', JWT.authMiddleware, JWT.patientMiddleware, async fu
             });
 
         res.json({ success: true, clinics: results });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+
+/*GET SPECIALISATION LIST*/
+router.get('/specialisation', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+    try {
+        const results = await Specialization.findAll();
+        res.json({ success: true, specialisations: results });
     }
     catch (error) {
         next(error);
