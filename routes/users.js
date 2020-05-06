@@ -35,7 +35,7 @@ router.post('/register', async function (req, res, next) {
     req.body.patientData.user_id = user.dataValues.id;
     await PatientData.create(req.body.patientData);
     await PatientStatus.create({ refused_msg: 'p', user_id: user.dataValues.id });
-    res.json({ success: true, message: 'User registered. Please check your mail' });
+    res.json({ success: true, message: 'Waiting for admin approval. Please check your mail' });
   }
   catch (error) {
     console.error(error);

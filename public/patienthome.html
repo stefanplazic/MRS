@@ -43,6 +43,12 @@
             getSpecialisations();
         }
 
+        function logout() {
+            //delete the jwt
+            localStorage.removeItem('userData');
+            checkIfLogged();
+
+        }
         async function getSpecialisations() {
             const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
             const url = window.location.origin + '/patients/specialisation';
@@ -194,7 +200,9 @@
                 .then(function (result) {
                     if (!result.success) {
                         showError(result.message);
+                        
                     }
+                    alert('Updated');
                 })
                 .catch(function (err) {
                     console.error(err);
@@ -226,6 +234,7 @@
 <body>
     <div class="container">
         <h3 class="text-center">Patient Home page</h3>
+        <a href="#" class="float-right" onclick="logout();">Logout</a>
         <ul class="nav nav-tabs">
             <li class="nav-item">
                 <a class="nav-link active" href="#home">Profile</a>
