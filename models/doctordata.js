@@ -16,6 +16,10 @@ module.exports = (sequelize, DataTypes) => {
                 model: 'Users',
                 key: 'id'
             },
+        },
+        timeslot_per_client: {
+            allowNull: false,
+            type: DataTypes.INTEGER,
         }
     }, {});
     return DoctorData;

@@ -18,6 +18,10 @@ module.exports = {
           key: 'id'
         },
       },
+      timeslot_per_client: {
+        allowNull: false,
+        type: DataTypes.INTEGER,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
