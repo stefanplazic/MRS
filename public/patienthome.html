@@ -16,6 +16,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.js"></script>
 
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.18.0/css/mdb.min.css" rel="stylesheet">
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.18.0/js/mdb.min.js"></script>
+
+    <!-- DATATABLES-->
+    <link href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Home page</title>
@@ -41,6 +50,8 @@
                 getClinicList();
             });
             getSpecialisations();
+            getAppointmentsHistory();
+            initSortableTable();
         }
 
         function logout() {
@@ -49,6 +60,24 @@
             checkIfLogged();
 
         }
+
+        async function getAppointmentsHistory() { }
+
+        function initSortableTable() {
+            $('#appointmentTable').DataTable({
+                "aaSorting": [],
+                columnDefs: [
+                    {
+                        orderable: false,
+                        targets: 1
+                    },
+                    {
+                        orderable: false,
+                        targets: 2
+                    }]
+            });
+        }
+
         async function getSpecialisations() {
             const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
             const url = window.location.origin + '/patients/specialisation';
@@ -200,7 +229,7 @@
                 .then(function (result) {
                     if (!result.success) {
                         showError(result.message);
-                        
+
                     }
                     alert('Updated');
                 })
@@ -241,6 +270,9 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#clinics">Search clinics</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#appHistory">Appointments history</a>
             </li>
         </ul>
 
@@ -361,6 +393,105 @@
                 </table>
                 <!--END OF TABLE-->
 
+            </div>
+
+            <div id="appHistory" class="container tab-pane fade">
+                <br />
+                <!--TABLE-->
+                <table class="table table-striped" id="appointmentTable">
+                    <thead>
+                        <tr>
+                            <th scope="col" data-field="appointype">Appointment type</th>
+                            <th scope="col" data-field="doctorname">Doctor name</th>
+                            <th scope="col" data-field="clinicname">Clinic name</th>
+                            <th scope="col" data-field="date">Date</th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td>examination</td>
+                        <td>Regional Director</td>
+                        <td>Edinburgh</td>
+                        <td>2008/11/15</td>
+                    </tr>
+                    <tr>
+                        <td>eye operation</td>
+                        <td>Regional Director</td>
+                        <td>Edinburgh</td>
+                        <td>2008/11/13</td>
+                    </tr>
+                    <tr>
+                        <td>examination</td>
+                        <td>Regional Director</td>
+                        <td>Edinburgh</td>
+                        <td>2008/11/15</td>
+                    </tr>
+                    <tr>
+                        <td>eye operation</td>
+                        <td>Regional Director</td>
+                        <td>Edinburgh</td>
+                        <td>2008/11/13</td>
+                    </tr>
+                    <tr>
+                        <td>examination</td>
+                        <td>Regional Director</td>
+                        <td>Edinburgh</td>
+                        <td>2008/11/15</td>
+                    </tr>
+                    <tr>
+                        <td>eye operation</td>
+                        <td>Regional Director</td>
+                        <td>Edinburgh</td>
+                        <td>2008/11/13</td>
+                    </tr>
+                    <tr>
+                        <td>examination</td>
+                        <td>Regional Director</td>
+                        <td>Edinburgh</td>
+                        <td>2008/11/15</td>
+                    </tr>
+                    <tr>
+                        <td>eye operation</td>
+                        <td>Regional Director</td>
+                        <td>Edinburgh</td>
+                        <td>2008/11/13</td>
+                    </tr>
+                    <tr>
+                        <td>examination</td>
+                        <td>Regional Director</td>
+                        <td>Edinburgh</td>
+                        <td>2008/11/15</td>
+                    </tr>
+                    <tr>
+                        <td>eye operation</td>
+                        <td>Regional Director</td>
+                        <td>Edinburgh</td>
+                        <td>2008/11/13</td>
+                    </tr>
+                    <tr>
+                        <td>examination</td>
+                        <td>Regional Director</td>
+                        <td>Edinburgh</td>
+                        <td>2008/11/15</td>
+                    </tr>
+                    <tr>
+                        <td>eye operation</td>
+                        <td>Regional Director</td>
+                        <td>Edinburgh</td>
+                        <td>2008/11/13</td>
+                    </tr>
+                    <tr>
+                        <td>examination</td>
+                        <td>Regional Director</td>
+                        <td>Edinburgh</td>
+                        <td>2008/11/15</td>
+                    </tr>
+                    <tr>
+                        <td>eye operation</td>
+                        <td>Regional Director</td>
+                        <td>Edinburgh</td>
+                        <td>2008/11/13</td>
+                    </tr>
+                </table>
             </div>
 
         </div>

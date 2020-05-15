@@ -115,7 +115,7 @@ router.get('/specialisation', JWT.authMiddleware, JWT.patientMiddleware, async f
 
 router.get('/pre-scheduled-examination', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
     try {
-        const results = await Schedule.findAll({where:{reserved:false}});
+        const results = await Schedule.findAll({ where: { reserved: false } });
         res.json({ success: true, examinations: results });
     }
     catch (error) {
@@ -126,11 +126,11 @@ router.get('/pre-scheduled-examination', JWT.authMiddleware, JWT.patientMiddlewa
 //for reserving pre scheduled examination
 router.post('/pre-scheduled-examination', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
     try {
-        const schedule = await Schedule.findOne({where:{reserved:false,id: req.body.scheduleId}});
-        if(schedule==null) res.json({ success: false, message: 'No such examination' });
+        const schedule = await Schedule.findOne({ where: { reserved: false, id: req.body.scheduleId } });
+        if (schedule == null) res.json({ success: false, message: 'No such examination' });
         //schedule examination
-        await Schedule.update({patienId:req.user.userId,reserved:true},{where:{id:req.body.scheduleId}});
-        res.json({ success: true, message:'Successfully scheduled' });
+        await Schedule.update({ patienId: req.user.userId, reserved: true }, { where: { id: req.body.scheduleId } });
+        res.json({ success: true, message: 'Successfully scheduled' });
     }
     catch (error) {
         next(error);
@@ -140,8 +140,8 @@ router.post('/pre-scheduled-examination', JWT.authMiddleware, JWT.patientMiddlew
 //get all user schedued operations and appointments
 router.get('/patient-appointments', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
     try {
-        const schedules = await Schedule.findAll({where:{reserved:true,patienId: req.user.userId}});
-        res.json({ success: true, appointments:schedules });
+        const schedules = await Schedule.findAll({ where: { reserved: true, patienId: req.user.userId } });
+        res.json({ success: true, appointments: schedules });
     }
     catch (error) {
         console.error(error);
