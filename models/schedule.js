@@ -2,7 +2,7 @@
 module.exports = (sequelize, DataTypes) => {
   const Schedule = sequelize.define('Schedule', {
     patienId: {
-      allowNull: false,
+      allowNull: true,
       type: DataTypes.INTEGER,
       references: {
         model: 'Users',
@@ -27,7 +27,8 @@ module.exports = (sequelize, DataTypes) => {
         model: 'Rooms',
         key: 'id'
       },
-    }
+    },
+    reserved: DataTypes.BOOLEAN,
   }, {});
   return Schedule;
 };

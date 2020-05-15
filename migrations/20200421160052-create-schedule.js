@@ -9,7 +9,7 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       patienId: {
-        allowNull: false,
+        allowNull: true,
         type: DataTypes.INTEGER,
         references: {
           model: 'Users',
@@ -41,6 +41,7 @@ module.exports = {
           key: 'id'
         },
       },
+      reserved: DataTypes.BOOLEAN,
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

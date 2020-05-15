@@ -8,6 +8,7 @@ var User = require('../models').User;
 var PatientData = require('../models').PatientData;
 var Location = require('../models').Location;
 var Specialization = require('../models').Specialization;
+var Schedule = require('../models').Schedule;
 
 /*GET USER PROFILE DATA INFO*/
 router.get('/profileData', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
@@ -111,5 +112,42 @@ router.get('/specialisation', JWT.authMiddleware, JWT.patientMiddleware, async f
         next(error);
     }
 });
+
+router.get('/pre-scheduled-examination', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+    try {
+        const results = await Schedule.findAll({where:{reserved:false}});
+        res.json({ success: true, examinations: results });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+
+//for reserving pre scheduled examination
+router.post('/pre-scheduled-examination', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+    try {
+        const schedule = await Schedule.findOne({where:{reserved:false,id: req.body.scheduleId}});
+        if(schedule==null) res.json({ success: false, message: 'No such examination' });
+        //schedule examination
+        await Schedule.update({patienId:req.user.userId,reserved:true},{where:{id:req.body.scheduleId}});
+        res.json({ success: true, message:'Successfully scheduled' });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+
+//get all user schedued operations and appointments
+router.get('/patient-appointments', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+    try {
+        const schedules = await Schedule.findAll({where:{reserved:true,patienId: req.user.userId}});
+        res.json({ success: true, appointments:schedules });
+    }
+    catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
 //SELECT Clinics.id,Clinics.name,(SELECT  CONCAT(Locations.address,Locations.city,Locations.state) from Locations WHERE Locations.id = Clinics.location) as address from Clinics WHERE Clinics.id IN (SELECT DoctorData.clinic_id from DoctorData INNER JOIN DoctorSpecializations on DoctorData.user_id = DoctorSpecializations.doctor_id INNER JOIN Vacations ON Vacations.doctor_id = DoctorData.user_id WHERE DoctorSpecializations.id = 1 AND Vacations.vacation_date != '0000-00-00');
 module.exports = router;
