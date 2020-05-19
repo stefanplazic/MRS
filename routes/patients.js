@@ -140,9 +140,12 @@ router.post('/pre-scheduled-examination', JWT.authMiddleware, JWT.patientMiddlew
 //get all user schedued operations and appointments
 router.get('/patient-appointments', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
     try {
-        const schedules = await Schedule.findAll({ where: { reserved: true, patienId: req.user.userId } });
+        const schedules = await db.sequelize.query("SELECT Schedules.id as scheduleId,Schedules.start_timestamp as scheduleDate, d.id as doctorId,CONCAT(d.fName,d.lName) as doctor, Clinics.name as clinic, Schedules.scheduleType FROM `Schedules` INNER JOIN Users d ON d.id = Schedules.doctorId INNER JOIN DoctorData ON DoctorData.user_id = Schedules.doctorId INNER JOIN Clinics ON Clinics.id = DoctorData.clinic_id WHERE Schedules.reserved = 1 AND Schedules.patienId = :patientId;",{
+                replacements: { patientId: req.user.userId},
+                type: QueryTypes.SELECT
+            });
         res.json({ success: true, appointments: schedules });
-        //SELECT Schedules.id as scheduleId,Schedules.start_timestamp as scheduleDate, d.id as doctorId,CONCAT(d.fName,d.lName) as doctor, Clinics.name as clinic FROM `Schedules` INNER JOIN Users d ON d.id = Schedules.doctorId INNER JOIN DoctorData ON DoctorData.user_id = Schedules.doctorIdINNER JOIN Clinics ON Clinics.id = DoctorData.clinic_idWHERE Schedules.patienId = 1;
+        //SELECT Schedules.id as scheduleId,Schedules.start_timestamp as scheduleDate, d.id as doctorId,CONCAT(d.fName,d.lName) as doctor, Clinics.name as clinic, Schedules.scheduleType FROM `Schedules` INNER JOIN Users d ON d.id = Schedules.doctorId INNER JOIN DoctorData ON DoctorData.user_id = Schedules.doctorId INNER JOIN Clinics ON Clinics.id = DoctorData.clinic_id WHERE Schedules.reserved = 1 AND Schedules.patienId = :patientId;
     }
     catch (error) {
         console.error(error);
@@ -150,5 +153,4 @@ router.get('/patient-appointments', JWT.authMiddleware, JWT.patientMiddleware, a
     }
 });
 
-//SELECT Clinics.id,Clinics.name,(SELECT  CONCAT(Locations.address,Locations.city,Locations.state) from Locations WHERE Locations.id = Clinics.location) as address from Clinics WHERE Clinics.id IN (SELECT DoctorData.clinic_id from DoctorData INNER JOIN DoctorSpecializations on DoctorData.user_id = DoctorSpecializations.doctor_id INNER JOIN Vacations ON Vacations.doctor_id = DoctorData.user_id WHERE DoctorSpecializations.id = 1 AND Vacations.vacation_date != '0000-00-00');
 module.exports = router;

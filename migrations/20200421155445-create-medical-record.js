@@ -8,6 +8,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      medical_history:DataTypes.STRING,
       height: DataTypes.INTEGER,
     weight:DataTypes.FLOAT,
     blood_type:DataTypes.String,
