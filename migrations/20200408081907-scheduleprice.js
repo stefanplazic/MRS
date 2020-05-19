@@ -1,36 +1,43 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('MedicalRecords', {
+    return queryInterface.createTable('SchedulePrices', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      height: DataTypes.INTEGER,
-    weight:DataTypes.FLOAT,
-    blood_type:DataTypes.String,
-    diopter:DataTypes.String,
-    patient_id: {
+    schedule_type_id: {
       allowNull: false,
       type: DataTypes.INTEGER,
       references: {
-        model: 'Users',
+        model: 'ScheduleTypes',
         key: 'id'
       },
     },
+    clinic_id: {
+      allowNull: false,
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'Clinics',
+        key: 'id'
+      },
+    },
+    price:DataTypes.FLOAT,
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        default: Date.now()
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        default: Date.now()
       }
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('MedicalRecords');
+    return queryInterface.dropTable('SchedulePrices');
   }
 };

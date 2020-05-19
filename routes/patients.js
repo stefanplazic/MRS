@@ -142,6 +142,7 @@ router.get('/patient-appointments', JWT.authMiddleware, JWT.patientMiddleware, a
     try {
         const schedules = await Schedule.findAll({ where: { reserved: true, patienId: req.user.userId } });
         res.json({ success: true, appointments: schedules });
+        //SELECT Schedules.id as scheduleId,Schedules.start_timestamp as scheduleDate, d.id as doctorId,CONCAT(d.fName,d.lName) as doctor, Clinics.name as clinic FROM `Schedules` INNER JOIN Users d ON d.id = Schedules.doctorId INNER JOIN DoctorData ON DoctorData.user_id = Schedules.doctorIdINNER JOIN Clinics ON Clinics.id = DoctorData.clinic_idWHERE Schedules.patienId = 1;
     }
     catch (error) {
         console.error(error);
