@@ -92,12 +92,46 @@
                         targets: 2
                     }]
             });
+
+            $('#appointmentTable tbody').on( 'click', 'tr', function () {
+                if ( $(this).hasClass('selected') ) {
+                    $(this).removeClass('selected');
+                }
+                else {
+                    table.$('tr.selected').removeClass('selected');
+                    $(this).addClass('selected');
+                }
+            } );
             
             var table = $('#appointmentTable').DataTable();
+            //curent Date
+            const currentDate = new Date().getTime() + (1 * 24 * 60 * 60 * 1000);
             for(var index in dataArray){
                 var item = dataArray[index];
-                table.row.add([item.scheduleType,item.doctor,item.clinic,item.scheduleDate]).draw(false);
+                var btn = new Date(item.scheduleDate).getTime() > currentDate ? `<a href='#' onclick='cancelDate(${item.scheduleId});'>Cancel</a>`:"";
+                table.row.add([item.scheduleType,item.doctor,item.clinic,item.scheduleDate, btn]).draw(false);
             }
+        }
+
+        function cancelDate(scheduleId) {
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/cancel-examination/'+scheduleId;
+            fetch(url, { method: 'PUT', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        alert(result.message);
+                        return;
+                    }
+                    alert(result.message);
+                    //remove the row clicked
+                    $('#appointmentTable').DataTable().row('.selected').remove().draw( false );
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
         }
 
         async function getSpecialisations() {
@@ -427,6 +461,7 @@
                             <th  data-field="doctor">Doctor name</th>
                             <th  data-field="clinic">Clinic name</th>
                             <th  data-field="scheduleDate">Date</th>
+                            <th  data-field="button">Cancel</th>
                         </tr>
                     </thead>
                     

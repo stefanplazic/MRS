@@ -3,7 +3,7 @@ var router = express.Router();
 var JWT = require('../utils/jwt');
 var db = require('../models');
 var { QueryTypes } = require('sequelize');
-
+var { Op } = require('sequelize')
 var User = require('../models').User;
 var PatientData = require('../models').PatientData;
 var Location = require('../models').Location;
@@ -163,6 +163,27 @@ router.get('/patient-appointments', JWT.authMiddleware, JWT.patientMiddleware, a
             });
         res.json({ success: true, appointments: schedules });
      }
+    catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+//for canceling appointments 24 hours before date
+router.put('/cancel-examination/:examId', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+    try {
+        const examId = req.params.examId;
+        const userId = req.user.userId;
+        //const deadlineDate = new Date().getTime() + 60 * 60 * 24 * 1000;
+        var deadlineDate = new Date();
+        deadlineDate.setDate(deadlineDate.getDate() - 1);
+
+        const schedule = await Schedule.findOne({ where: { reserved: true, id: examId, patienId:userId, start_timestamp:{[Op.gte]:deadlineDate } } });
+
+        if (schedule == null) return res.json({ success: false, message: 'No such examination' });
+        await Schedule.update({ patienId: null, reserved: false }, { where: { id: examId } });
+        res.json({ success: true, message: 'Successfully canceled.' });
+    }
     catch (error) {
         console.error(error);
         next(error);
