@@ -41,6 +41,16 @@ module.exports = {
           key: 'id'
         },
       },
+      price: {
+      allowNull: false,
+      type: DataTypes.FLOAT,
+     defaultValue:0
+    },
+    discount: {
+      allowNull: false,
+      type: DataTypes.FLOAT,
+      defaultValue:0
+    },
       reserved: DataTypes.BOOLEAN,
       createdAt: {
         allowNull: false,

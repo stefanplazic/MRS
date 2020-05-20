@@ -9,6 +9,7 @@ var PatientData = require('../models').PatientData;
 var Location = require('../models').Location;
 var Specialization = require('../models').Specialization;
 var Schedule = require('../models').Schedule;
+var Clinic = require('../models').Clinic;
 
 /*GET USER PROFILE DATA INFO*/
 router.get('/profileData', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
@@ -113,10 +114,21 @@ router.get('/specialisation', JWT.authMiddleware, JWT.patientMiddleware, async f
     }
 });
 
+router.get('/clinicData/:clinicId', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+    try {
+        const clinicId = req.params.clinicId;
+        const results = await Clinic.findOne({where:{id:clinicId}});
+        res.json({ success: true, clinic: results });
+   }
+    catch (error) {
+        next(error);
+    }
+});
+
 router.get('/pre-scheduled-examination/:clinicId', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
     try {
         const clinicId = req.params.clinicId;
-        const results = await db.sequelize.query("SELECT Schedules.id, Schedules.scheduleType, DATE_FORMAT(Schedules.start_timestamp,'%H:%i:%s') as start_time, DATE_FORMAT(Schedules.end_timestamp,'%H:%i:%s') as end_time,CONCAT(Rooms.floor,Rooms.label) as room, Users.id as doctorId,CONCAT(Users.fName,Users.lName) as doctor_name FROM Schedules INNER JOIN DoctorData ON Schedules.doctorId = DoctorData.user_id INNER JOIN Users ON Users.id = DoctorData.user_id INNER JOIN Rooms ON Rooms.id = Schedules.roomId WHERE Schedules.reserved = 0 AND DoctorData.clinic_id = :clinicId AND Schedules.patienId IS NULL;",{
+        const results = await db.sequelize.query("SELECT Schedules.id, Schedules.price,Schedules.discount, Schedules.scheduleType, DATE_FORMAT(Schedules.start_timestamp,'%H:%i:%s') as start_time, DATE_FORMAT(Schedules.end_timestamp,'%H:%i:%s') as end_time,CONCAT(Rooms.floor,Rooms.label) as room, Users.id as doctorId,CONCAT(Users.fName,Users.lName) as doctor_name FROM Schedules INNER JOIN DoctorData ON Schedules.doctorId = DoctorData.user_id INNER JOIN Users ON Users.id = DoctorData.user_id INNER JOIN Rooms ON Rooms.id = Schedules.roomId WHERE Schedules.reserved = 0 AND DoctorData.clinic_id = :clinicId AND Schedules.patienId IS NULL;",{
                 replacements: { clinicId: clinicId},
                 type: QueryTypes.SELECT
             });

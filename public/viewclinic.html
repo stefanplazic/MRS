@@ -33,6 +33,7 @@
         $(document).ready(function () {
             checkIfLogged();
             init();
+            getClinicData();
             getPreScheduled();
         });
 
@@ -41,6 +42,24 @@
             const urlParams = new URLSearchParams(queryString);
             const id = urlParams.get('id');
             window.clinicId = id;
+        }
+        function getClinicData(){
+            const clinicId = window.clinicId;
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/clinicData/'+clinicId;
+            fetch(url, { method: 'GET', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        return;
+                    }
+                    $('#clinicName').text(result.clinic.name);
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
         }
 
         function getPreScheduled(){
@@ -68,9 +87,28 @@
         function addScheduleLink(scheduleList) {
             const domain = window.location.origin + '/viewschedule.html?id=';
             for (let schedule of scheduleList) {
-                schedule.link = "<a href=" + domain + schedule.id + '>Link</a>';
+                schedule.link = "<a href='#' onclick='schedule("+schedule.id+");'>Schedule</a>";
             }
             return scheduleList;
+        }
+
+        function schedule(scheduleId){
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/pre-scheduled-examination/';
+            fetch(url, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt },body: JSON.stringify({scheduleId:scheduleId}) })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        return;
+                    }
+                    alert(result.message);
+                    getPreScheduled();
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
         }
 
         function logout() {
@@ -95,7 +133,7 @@
 
 <body>
     <div class="container">
-        <h3 class="text-center">Clinic page</h3>
+        <h3 class="text-center" id="clinicName"></h3>
 
         <a href="#" class="float-right ml-5" onclick="logout();">Logout</a>
         <a href="/patienthome.html" class="float-right">Home</a>
@@ -118,7 +156,9 @@
                             <th  data-field="room">Room</th>
                             <th  data-field="start_time">Start time</th>
                             <th  data-field="end_time">End time</th>
-                            <th  data-field="link">Visit</th>
+                            <th  data-field="price">Price</th>
+                            <th  data-field="discount">Discount</th>
+                            <th  data-field="link">Schedule</th>
                         </tr>
                     </thead>
                     
