@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.1/bootstrap-table.min.js"></script>
+
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.18.0/css/mdb.min.css" rel="stylesheet">
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.18.0/js/mdb.min.js"></script>
+
+    <!-- DATATABLES-->
+    <link href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Clinic page</title>
+    <script>
+
+        $(document).ready(function () {
+            checkIfLogged();
+            init();
+            getPreScheduled();
+        });
+
+        function init(){
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            const id = urlParams.get('id');
+            window.clinicId = id;
+        }
+
+        function getPreScheduled(){
+            const clinicId = window.clinicId;
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/pre-scheduled-examination/'+clinicId;
+            fetch(url, { method: 'GET', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        return;
+                    }
+                    console.log(result.examinations);
+                    const scheduleData = addScheduleLink(result.examinations);
+                    $('#appointmentTable').bootstrapTable('destroy');
+                    $('#appointmentTable').bootstrapTable({ data: scheduleData});
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
+        }
+
+        function addScheduleLink(scheduleList) {
+            const domain = window.location.origin + '/viewschedule.html?id=';
+            for (let schedule of scheduleList) {
+                schedule.link = "<a href=" + domain + schedule.id + '>Link</a>';
+            }
+            return scheduleList;
+        }
+
+        function logout() {
+            //delete the jwt
+            localStorage.removeItem('userData');
+            checkIfLogged();
+        }
+  
+        function checkIfLogged() {
+            const userData = localStorage.getItem('userData');
+            redirect(JSON.parse(userData));
+
+        }
+
+        function redirect(userData) {
+            if (userData == null || userData.role != 'patient') {
+                window.location.href = '/';
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <h3 class="text-center">Clinic page</h3>
+
+        <a href="#" class="float-right ml-5" onclick="logout();">Logout</a>
+        <a href="/patienthome.html" class="float-right">Home</a>
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#pre">Pre-Scheduled Examinations</a>
+            </li>
+  
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+            <div id="pre" class="container tab-pane active"><br>
+
+                <table class="table table-striped" id="appointmentTable">
+                    <thead>
+                        <tr>
+                            <th  data-field="scheduleType">Appointment type</th>
+                            <th  data-field="doctor_name">Doctor name</th>
+                            <th  data-field="room">Room</th>
+                            <th  data-field="start_time">Start time</th>
+                            <th  data-field="end_time">End time</th>
+                            <th  data-field="link">Visit</th>
+                        </tr>
+                    </thead>
+                    
+                   
+                </table>
+            </div>     
+    </div>
+    <script>
+        $(document).ready(function () {
+            $(".nav-tabs a").click(function () {
+                $(this).tab('show');
+            });
+        });
+    </script>
+</body>
+
+</html>

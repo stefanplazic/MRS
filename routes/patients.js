@@ -113,10 +113,15 @@ router.get('/specialisation', JWT.authMiddleware, JWT.patientMiddleware, async f
     }
 });
 
-router.get('/pre-scheduled-examination', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+router.get('/pre-scheduled-examination/:clinicId', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
     try {
-        const results = await Schedule.findAll({ where: { reserved: false } });
+        const clinicId = req.params.clinicId;
+        const results = await db.sequelize.query("SELECT Schedules.id, Schedules.scheduleType, DATE_FORMAT(Schedules.start_timestamp,'%H:%i:%s') as start_time, DATE_FORMAT(Schedules.end_timestamp,'%H:%i:%s') as end_time,CONCAT(Rooms.floor,Rooms.label) as room, Users.id as doctorId,CONCAT(Users.fName,Users.lName) as doctor_name FROM Schedules INNER JOIN DoctorData ON Schedules.doctorId = DoctorData.user_id INNER JOIN Users ON Users.id = DoctorData.user_id INNER JOIN Rooms ON Rooms.id = Schedules.roomId WHERE Schedules.reserved = 0 AND DoctorData.clinic_id = :clinicId AND Schedules.patienId IS NULL;",{
+                replacements: { clinicId: clinicId},
+                type: QueryTypes.SELECT
+            });
         res.json({ success: true, examinations: results });
+        //SELECT Schedules.id, Schedules.scheduleType, DATE_FORMAT(Schedules.start_timestamp,'%H:%i:%s') as start_time, DATE_FORMAT(Schedules.end_timestamp,'%H:%i:%s') as end_time,CONCAT(Rooms.floor,Rooms.label) as room, Users.id as doctorId,CONCAT(Users.fName,Users.lName) as doctor_name FROM Schedules INNER JOIN DoctorData ON Schedules.doctorId = DoctorData.user_id INNER JOIN Users ON Users.id = DoctorData.user_id INNER JOIN Rooms ON Rooms.id = Schedules.roomId WHERE Schedules.reserved = 0 AND DoctorData.clinic_id = 2 AND Schedules.patienId IS NULL;
     }
     catch (error) {
         next(error);
@@ -145,8 +150,7 @@ router.get('/patient-appointments', JWT.authMiddleware, JWT.patientMiddleware, a
                 type: QueryTypes.SELECT
             });
         res.json({ success: true, appointments: schedules });
-        //SELECT Schedules.id as scheduleId,Schedules.start_timestamp as scheduleDate, d.id as doctorId,CONCAT(d.fName,d.lName) as doctor, Clinics.name as clinic, Schedules.scheduleType FROM `Schedules` INNER JOIN Users d ON d.id = Schedules.doctorId INNER JOIN DoctorData ON DoctorData.user_id = Schedules.doctorId INNER JOIN Clinics ON Clinics.id = DoctorData.clinic_id WHERE Schedules.reserved = 1 AND Schedules.patienId = :patientId;
-    }
+     }
     catch (error) {
         console.error(error);
         next(error);
