@@ -133,8 +133,7 @@ router.get('/pre-scheduled-examination/:clinicId', JWT.authMiddleware, JWT.patie
                 type: QueryTypes.SELECT
             });
         res.json({ success: true, examinations: results });
-        //SELECT Schedules.id, Schedules.scheduleType, DATE_FORMAT(Schedules.start_timestamp,'%H:%i:%s') as start_time, DATE_FORMAT(Schedules.end_timestamp,'%H:%i:%s') as end_time,CONCAT(Rooms.floor,Rooms.label) as room, Users.id as doctorId,CONCAT(Users.fName,Users.lName) as doctor_name FROM Schedules INNER JOIN DoctorData ON Schedules.doctorId = DoctorData.user_id INNER JOIN Users ON Users.id = DoctorData.user_id INNER JOIN Rooms ON Rooms.id = Schedules.roomId WHERE Schedules.reserved = 0 AND DoctorData.clinic_id = 2 AND Schedules.patienId IS NULL;
-    }
+   }
     catch (error) {
         next(error);
     }
@@ -183,6 +182,33 @@ router.put('/cancel-examination/:examId', JWT.authMiddleware, JWT.patientMiddlew
         if (schedule == null) return res.json({ success: false, message: 'No such examination' });
         await Schedule.update({ patienId: null, reserved: false }, { where: { id: examId } });
         res.json({ success: true, message: 'Successfully canceled.' });
+    }
+    catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+
+//search doctors in given clinic
+router.get('/doctors/:clinicId', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+    try {
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sut'];
+        const clinicId = req.params.clinicId;
+        const dateOfExamination = req.query.date == undefined ? new Date() : req.query.date;
+        const specialisationType = req.query.specialisationType;
+        if(specialisationType == undefined) return res.json({ success: false, message:'No specialisation defined' });
+        //find clinic
+        const clinic = await Clinic.findOne({where:{id:clinicId}});
+        if(clinic === null) return res.json({ success: false, message:'No such clinic' });
+        //find doctors
+        const results = await db.sequelize.query("SELECT Users.id, Users.fName, Users.lName FROM Users INNER JOIN DoctorData on Users.id = DoctorData.id INNER JOIN DoctorSpecializations ON Users.id = DoctorSpecializations.doctor_id INNER JOIN DoctorAviabilities ON Users.id = DoctorAviabilities.doctor_id INNER JOIN Vacations ON Users.id = Vacations.doctor_id WHERE DoctorData.clinic_id = :clinicId  AND DoctorSpecializations.specialization_id = :specialisationType AND DoctorAviabilities.day_of_the_week = :day AND Vacations.vacation_date != :dateOfExamination;"
+            , {
+                replacements: { day: days[dateOfExamination.getDay()], dateOfExamination: dateOfExamination, specialisationType: specialisationType, clinicId: clinicId },
+                type: QueryTypes.SELECT
+            });
+        //SELECT * FROM Users INNER JOIN DoctorData on Users.id = DoctorData.id INNER JOIN DoctorSpecializations ON Users.id = DoctorSpecializations.doctor_id INNER JOIN DoctorAviabilities ON Users.id = DoctorAviabilities.doctor_id INNER JOIN Vacations ON Users.id = Vacations.doctor_id WHERE DoctorData.clinic_id = 1  AND DoctorSpecializations.specialization_id = 1 AND DoctorAviabilities.day_of_the_week = 'Fri' AND Vacations.vacation_date != CURRENT_TIMESTAMP();
+        res.json({ success: true, doctors:results });
     }
     catch (error) {
         console.error(error);
