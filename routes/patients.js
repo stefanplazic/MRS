@@ -194,7 +194,7 @@ router.get('/doctors/:clinicId', JWT.authMiddleware, JWT.patientMiddleware, asyn
     try {
         const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sut'];
         const clinicId = req.params.clinicId;
-        const dateOfExamination = req.query.date == undefined ? new Date() : req.query.date;
+        const dateOfExamination = req.query.date == undefined ? new Date() : new Date(req.query.date);
         const specialisationType = req.query.specialisationType;
         if(specialisationType == undefined) return res.json({ success: false, message:'No specialisation defined' });
         //find clinic

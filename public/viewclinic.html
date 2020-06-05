@@ -49,7 +49,22 @@
             });
         }
         function searchDoctors(){
-            
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/doctors/'+window.clinicId+'?specialisationType='+$('#appointmentSelect').val()+'&date='+$('#clinicDate').val();
+            //console.log(url);
+            fetch(url, { method: 'GET', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        return;
+                    }
+                    console.log(result.doctors);
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
         }
 
         async function getSpecialisations() {
