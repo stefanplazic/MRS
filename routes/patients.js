@@ -173,7 +173,6 @@ router.put('/cancel-examination/:examId', JWT.authMiddleware, JWT.patientMiddlew
     try {
         const examId = req.params.examId;
         const userId = req.user.userId;
-        //const deadlineDate = new Date().getTime() + 60 * 60 * 24 * 1000;
         var deadlineDate = new Date();
         deadlineDate.setDate(deadlineDate.getDate() - 1);
 
@@ -207,7 +206,6 @@ router.get('/doctors/:clinicId', JWT.authMiddleware, JWT.patientMiddleware, asyn
                 replacements: { day: days[dateOfExamination.getDay()], dateOfExamination: dateOfExamination, specialisationType: specialisationType, clinicId: clinicId },
                 type: QueryTypes.SELECT
             });
-        //SELECT * FROM Users INNER JOIN DoctorData on Users.id = DoctorData.id INNER JOIN DoctorSpecializations ON Users.id = DoctorSpecializations.doctor_id INNER JOIN DoctorAviabilities ON Users.id = DoctorAviabilities.doctor_id INNER JOIN Vacations ON Users.id = Vacations.doctor_id WHERE DoctorData.clinic_id = 1  AND DoctorSpecializations.specialization_id = 1 AND DoctorAviabilities.day_of_the_week = 'Fri' AND Vacations.vacation_date != CURRENT_TIMESTAMP();
         res.json({ success: true, doctors:results });
     }
     catch (error) {

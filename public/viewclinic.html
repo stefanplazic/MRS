@@ -42,7 +42,39 @@
             const urlParams = new URLSearchParams(queryString);
             const id = urlParams.get('id');
             window.clinicId = id;
+            getSpecialisations();
+            $('#doctorListForm').on('submit', function (e) {
+                e.preventDefault();
+                searchDoctors();
+            });
         }
+        function searchDoctors(){
+            
+        }
+
+        async function getSpecialisations() {
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/specialisation';
+            fetch(url, { method: 'GET', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        return;
+                    }
+                    const specialisations = result.specialisations;
+                    var listitems = '';
+                    for (const specialisation of specialisations) {
+                        listitems += '<option value=' + specialisation.id + '>' + specialisation.name + '</option>';
+                    }
+                    $('#appointmentSelect').append(listitems);
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
+        }
+
         function getClinicData(){
             const clinicId = window.clinicId;
             const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
@@ -74,7 +106,6 @@
                     if (!result.success) {
                         return;
                     }
-                    console.log(result.examinations);
                     const scheduleData = addScheduleLink(result.examinations);
                     $('#appointmentTable').bootstrapTable('destroy');
                     $('#appointmentTable').bootstrapTable({ data: scheduleData});
@@ -141,6 +172,9 @@
             <li class="nav-item">
                 <a class="nav-link active" href="#pre">Pre-Scheduled Examinations</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link " href="#doclist">Doctor Search</a>
+            </li>
   
         </ul>
 
@@ -158,6 +192,43 @@
                             <th  data-field="end_time">End time</th>
                             <th  data-field="price">Price</th>
                             <th  data-field="discount">Discount</th>
+                            <th  data-field="link">Schedule</th>
+                        </tr>
+                    </thead>
+                    
+                   
+                </table>
+            </div>
+
+            <!-- DOCTOR LIST FILTERING-->
+
+            <div id="doclist" class="container tab-pane fade"><br>
+                <form id="doctorListForm">
+                    <label for="appointmentSelect">Type of appointment</label>
+                    <div class="form-group">
+
+                        <select class="form-control" id="appointmentSelect">
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="clinicDate">Appointment Date</label>
+                        <input type="date" id="clinicDate" required min="1000-01-01" max="3000-12-31"
+                            class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <button type="reset" class="btn btn-secondary">Reset</button>
+                </form>
+                <br />
+                <br />
+                <br />
+
+                <table class="table table-striped" id="doctorTable">
+                    <thead>
+                        <tr>
+                            <th  data-field="f_name">First name</th>
+                            <th  data-field="l_name">Last name</th>
+                            <th  data-field="grade">Grade</th>
                             <th  data-field="link">Schedule</th>
                         </tr>
                     </thead>
