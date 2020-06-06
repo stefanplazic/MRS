@@ -60,12 +60,23 @@
                     if (!result.success) {
                         return;
                     }
-                    console.log(result.doctors);
+                    insertIntoTable(result.doctors);
                 })
                 .catch(function (err) {
                     console.error(err);
                 });
         }
+
+        function insertIntoTable(dataArray){
+            var table = $('#doctorTable').DataTable();
+            //curent Date
+            for(var index in dataArray){
+                var item = dataArray[index];
+                
+                table.row.add([item.fName,item.lName,item.grade,"<a href='#' onclick='checkDates("+item.id+")'>Check timetable</a>"]).draw(false);
+            }
+        }
+        function checkDates(doctorId){console.log(doctorId);}
 
         async function getSpecialisations() {
             const jwt = JSON.parse(localStorage.getItem('userData')).jwt;

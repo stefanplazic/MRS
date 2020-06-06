@@ -201,9 +201,30 @@ router.get('/doctors/:clinicId', JWT.authMiddleware, JWT.patientMiddleware, asyn
         const clinic = await Clinic.findOne({where:{id:clinicId}});
         if(clinic === null) return res.json({ success: false, message:'No such clinic' });
         //find doctors
-        const results = await db.sequelize.query("SELECT Users.id, Users.fName, Users.lName FROM Users INNER JOIN DoctorData on Users.id = DoctorData.id INNER JOIN DoctorSpecializations ON Users.id = DoctorSpecializations.doctor_id INNER JOIN DoctorAviabilities ON Users.id = DoctorAviabilities.doctor_id INNER JOIN Vacations ON Users.id = Vacations.doctor_id WHERE DoctorData.clinic_id = :clinicId  AND DoctorSpecializations.specialization_id = :specialisationType AND DoctorAviabilities.day_of_the_week = :day AND Vacations.vacation_date != :dateOfExamination;"
+        const results = await db.sequelize.query("SELECT Users.id, Users.fName, Users.lName, IFNULL((SELECT AVG(DoctorGrades.grade) FROM DoctorGrades WHERE DoctorGrades.doctor_id = Users.id),0) as grade FROM Users INNER JOIN DoctorData ON Users.id = DoctorData.user_id INNER JOIN DoctorAviabilities On Users.id = DoctorAviabilities.doctor_id INNER JOIN DoctorSpecializations ON Users.id = DoctorSpecializations.doctor_id WHERE DoctorData.clinic_id = :clinicId AND DoctorSpecializations.id = :specialisationType AND Users.id NOT IN (SELECT Vacations.doctor_id FROM Vacations WHERE Vacations.vacation_date = :dateOfExamination) AND DoctorAviabilities.day_of_the_week = :day;"
             , {
                 replacements: { day: days[dateOfExamination.getDay()], dateOfExamination: dateOfExamination, specialisationType: specialisationType, clinicId: clinicId },
+                type: QueryTypes.SELECT
+            });
+        res.json({ success: true, doctors:results });
+    }
+    catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+//find timetables for doctor
+router.get('/doctorTimeTable/:doctorId', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+    try {
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sut'];
+        const doctorId = req.params.doctorId;
+        const dateOfExamination = req.query.date == undefined ? new Date() : new Date(req.query.date);
+        //SELECT DoctorAviabilities.start_time, DoctorAviabilities.end_time, DoctorData.timeslot_per_client FROM DoctorAviabilities INNER JOIN DoctorData ON DoctorAviabilities.doctor_id = DoctorData.user_id  WHERE DoctorAviabilities.doctor_id = 10 AND DoctorAviabilities.doctor_id NOT IN (SELECT Vacations.doctor_id FROM Vacations WHERE Vacations.vacation_date = CURRENT_TIMESTAMP());
+        //SELECT Schedules.start_timestamp, Schedules.end_timestamp FROM Schedules WHERE Schedules.doctorId = 10 AND Date(Schedules.start_timestamp) = CURRENT_DATE();
+        const results = await db.sequelize.query("SELECT DoctorAviabilities.start_time, DoctorAviabilities.end_time, DoctorData.timeslot_per_client FROM DoctorAviabilities INNER JOIN DoctorData ON DoctorAviabilities.doctor_id = DoctorData.user_id  WHERE DoctorAviabilities.doctor_id = :doctorId AND DoctorAviabilities.day_of_the_week = :day AND DoctorAviabilities.doctor_id NOT IN (SELECT Vacations.doctor_id FROM Vacations WHERE Vacations.vacation_date = :dateOfExamination);"
+            , {
+                replacements: { day: days[dateOfExamination.getDay()], dateOfExamination: dateOfExamination, doctorId:doctorId },
                 type: QueryTypes.SELECT
             });
         res.json({ success: true, doctors:results });
