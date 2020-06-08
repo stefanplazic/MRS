@@ -10,6 +10,7 @@ var Location = require('../models').Location;
 var Specialization = require('../models').Specialization;
 var Schedule = require('../models').Schedule;
 var Clinic = require('../models').Clinic;
+var Dates = require('../utils/date');
 
 /*GET USER PROFILE DATA INFO*/
 router.get('/profileData', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
@@ -220,19 +221,30 @@ router.get('/doctorTimeTable/:doctorId', JWT.authMiddleware, JWT.patientMiddlewa
         const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sut'];
         const doctorId = req.params.doctorId;
         const dateOfExamination = req.query.date == undefined ? new Date() : new Date(req.query.date);
-        //SELECT DoctorAviabilities.start_time, DoctorAviabilities.end_time, DoctorData.timeslot_per_client FROM DoctorAviabilities INNER JOIN DoctorData ON DoctorAviabilities.doctor_id = DoctorData.user_id  WHERE DoctorAviabilities.doctor_id = 10 AND DoctorAviabilities.doctor_id NOT IN (SELECT Vacations.doctor_id FROM Vacations WHERE Vacations.vacation_date = CURRENT_TIMESTAMP());
-        //SELECT Schedules.start_timestamp, Schedules.end_timestamp FROM Schedules WHERE Schedules.doctorId = 10 AND Date(Schedules.start_timestamp) = CURRENT_DATE();
-        const results = await db.sequelize.query("SELECT DoctorAviabilities.start_time, DoctorAviabilities.end_time, DoctorData.timeslot_per_client FROM DoctorAviabilities INNER JOIN DoctorData ON DoctorAviabilities.doctor_id = DoctorData.user_id  WHERE DoctorAviabilities.doctor_id = :doctorId AND DoctorAviabilities.day_of_the_week = :day AND DoctorAviabilities.doctor_id NOT IN (SELECT Vacations.doctor_id FROM Vacations WHERE Vacations.vacation_date = :dateOfExamination);"
+        var aviability;
+        var aviabilityResults = await db.sequelize.query("SELECT DoctorAviabilities.start_time as start_time, DoctorAviabilities.end_time as end_time, DoctorData.timeslot_per_client FROM DoctorAviabilities INNER JOIN DoctorData ON DoctorAviabilities.doctor_id = DoctorData.user_id  WHERE DoctorAviabilities.doctor_id = :doctorId AND DoctorAviabilities.day_of_the_week = :day AND DoctorAviabilities.doctor_id NOT IN (SELECT Vacations.doctor_id FROM Vacations WHERE Vacations.vacation_date = :dateOfExamination) LIMIT 1;"
             , {
                 replacements: { day: days[dateOfExamination.getDay()], dateOfExamination: dateOfExamination, doctorId:doctorId },
                 type: QueryTypes.SELECT
             });
-        res.json({ success: true, doctors:results });
+        const scheduleResults = await db.sequelize.query("SELECT Schedules.start_timestamp as start_timestamp, Schedules.end_timestamp as end_timestamp FROM Schedules WHERE Schedules.doctorId = :doctorId AND Date(Schedules.start_timestamp) = Date(:dateOfExamination);"
+            , {
+                replacements: {dateOfExamination: dateOfExamination, doctorId:doctorId },
+                type: QueryTypes.SELECT
+            });
+        if(aviabilityResults.length == 0) return res.send({success:false,message:'No abavility definied for this day'});
+        
+        aviability = aviabilityResults[0];
+        //generate slots for given working time
+        aviability =  Dates.generateTimeSlots(aviability.start_time, aviability.end_time, aviability.timeslot_per_client,scheduleResults);
+        //remove slots which are scheduled
+        res.json({ success: true, aviability:aviability });
     }
     catch (error) {
         console.error(error);
         next(error);
     }
 });
+
 
 module.exports = router;

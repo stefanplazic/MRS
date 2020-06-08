@@ -51,7 +51,6 @@
         function searchDoctors(){
             const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
             const url = window.location.origin + '/patients/doctors/'+window.clinicId+'?specialisationType='+$('#appointmentSelect').val()+'&date='+$('#clinicDate').val();
-            //console.log(url);
             fetch(url, { method: 'GET', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
                 .then(function (result) {
                     return result.json();
@@ -69,6 +68,7 @@
 
         function insertIntoTable(dataArray){
             var table = $('#doctorTable').DataTable();
+            table.clear();
             //curent Date
             for(var index in dataArray){
                 var item = dataArray[index];
@@ -76,7 +76,44 @@
                 table.row.add([item.fName,item.lName,item.grade,"<a href='#' onclick='checkDates("+item.id+")'>Check timetable</a>"]).draw(false);
             }
         }
-        function checkDates(doctorId){console.log(doctorId);}
+        function checkDates(doctorId){
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/doctorTimeTable/'+doctorId+'?date='+$('#clinicDate').val();
+            fetch(url, { method: 'GET', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        return;
+                    }
+                  showSlots(result.aviability);  
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
+        }
+
+        function showSlots(aviability){
+            const slotsValues = aviability.map(slot => {
+                const date = new Date(slot);
+                return  {value:slot,name:date.getHours() + ':'+ date.getMinutes()};
+            });
+
+            let dropdown = $('#slots');
+            dropdown.empty();
+            dropdown.append('<option selected="true" disabled>Choose time</option>');
+            dropdown.prop('selectedIndex', 0);
+
+            slotsValues.forEach(elem=>{
+                dropdown.append($('<option></option>').attr('value', elem.value).text(elem.name));
+            });
+            $("#slots").change(function () {
+                var end = this.value;
+                console.log(end);
+    });
+            $('#slotModal').modal('show');
+        }
 
         async function getSpecialisations() {
             const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
@@ -263,6 +300,30 @@
                 </table>
             </div>     
     </div>
+    <div class="modal" tabindex="-1" role="dialog" id="slotModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Choose your time slot</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+        <div class="ui-widget">
+          <label for="slots">Slots: </label>
+          <select id="slots">
+            </select>
+</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
     <script>
         $(document).ready(function () {
             $(".nav-tabs a").click(function () {
