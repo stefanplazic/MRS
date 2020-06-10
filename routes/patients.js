@@ -11,6 +11,7 @@ var Specialization = require('../models').Specialization;
 var Schedule = require('../models').Schedule;
 var Clinic = require('../models').Clinic;
 var Dates = require('../utils/date');
+var ClinicGrade = require('../models').ClinicGrade;
 
 /*GET USER PROFILE DATA INFO*/
 router.get('/profileData', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
@@ -246,5 +247,34 @@ router.get('/doctorTimeTable/:doctorId', JWT.authMiddleware, JWT.patientMiddlewa
     }
 });
 
+//rate clinic
+router.post('/clinicrate/:clinicId', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+    try {
+        const clinicId = req.params.clinicId;
+        const rate = req.query.rate;
+        const userId = req.user.userId;
+
+        if(rate == undefined) return res.json({success:false,message:'No rate mark'});
+        if(!Number.isInteger(rate) && rate < 1 && rate > 5) return res.json({success:false,message:'Rate must be an number between 1 and 5'});
+        //check if clinic exists
+        let result = await Clinic.findOne({where:{id:clinicId}});
+        if(result === null) return res.json({ success: false, message:'No such clinic' });
+        //check if user had scheduled in given clinic
+        result = await db.sequelize.query("SELECT COUNT(*) as sheduleCount FROM Clinics INNER JOIN DoctorData ON Clinics.id = DoctorData.clinic_id INNER JOIN Schedules ON Schedules.doctorId = DoctorData.user_id WHERE Schedules.end_timestamp < CURRENT_TIMESTAMP() AND Schedules.patienId = :userId;"
+            , {replacements: {userId: userId },type: QueryTypes.SELECT});
+        if(result[0].sheduleCount == 0) return res.json({ success: false, message:'Patient didnt have a scheudle in this clinic' });
+        //check if user allready rated the clinic
+        result = await db.sequelize.query("SELECT COUNT(*) as rateCount FROM ClinicGrades WHERE ClinicGrades.clinic_id  = :clinicId AND ClinicGrades.user_id = :userId;"
+            , {replacements: {userId: userId, clinicId:clinicId },type: QueryTypes.SELECT});
+        //rate clinic
+        if(result[0].rateCount > 0) return res.json({ success: false, message:'Patient allready rated' });
+        result = await ClinicGrade.create({clinic_id:clinicId,user_id:userId,grade:rate});
+        res.json({ success: true, aviability:result });
+    }
+    catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
 
 module.exports = router;
