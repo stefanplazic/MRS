@@ -230,8 +230,53 @@
             const domain = window.location.origin + '/viewclinic.html?id=';
             for (let clinic of clinicsList) {
                 clinic.link = "<a href=" + domain + clinic.id + '>Link</a>';
+                clinic.rateLink = "<a href='#' onclick='showRateModal("+clinic.id+")'>Rate</a>";
             }
             return clinicsList;
+        }
+
+        function showRateModal(clinicId){
+            window.clId = clinicId;
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/isclinicrated/'+clinicId;
+            fetch(url, { method: 'GET', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    var canRate = true
+                    if (!result.success) {
+                        canRate = false;
+                    }
+                    canRate = result.isRated;
+                    if(!canRate){
+                        alert('YOu cant rate');
+                        return;
+                    }
+                    $('#rateModal').modal('show');
+                    $('#rate').on('change', function() {
+                          rateClinic( this.value );
+                        });
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
+        }
+
+        function rateClinic(rateValue){
+            $('#rateModal').modal('hide');
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/clinicrate/'+window.clId;
+            fetch(url, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt },body: JSON.stringify({rate:rateValue}) })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    console.log(result);
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
         }
 
         //function for puting values inside profile form
@@ -443,6 +488,7 @@
                             <th scope="col" data-field="name">Clinic name</th>
                             <th scope="col" data-field="address">Address</th>
                             <th scope="col" data-field="link">Visit</th>
+                            <th scope="col" data-field="rateLink">Rate</th>
                         </tr>
                     </thead>
 
@@ -470,6 +516,36 @@
             </div>
 
         </div>
+        <!--MODAL -->
+        <div class="modal" tabindex="-1" role="dialog" id="rateModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="rateTitle">Please rate</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+        <div class="ui-widget">
+          
+          <select id="rate">
+            <option selected="true" disabled>Choose rate</option>
+            <option value="1">Give rate of 1</option>
+            <option value="2">Give rate of 2</option>
+            <option value="3">Give rate of 3</option>
+            <option value="4">Give rate of 4</option>
+            </select>
+</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
     </div>
     <script>
         $(document).ready(function () {

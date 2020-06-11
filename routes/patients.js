@@ -80,6 +80,7 @@ router.get('/clinics', JWT.authMiddleware, JWT.patientMiddleware, async function
         res.json({ success: true, clinics: results });
     }
     catch (error) {
+        console.error(error);
         next(error);
     }
 });
@@ -92,7 +93,7 @@ router.get('/filterClinics', JWT.authMiddleware, JWT.patientMiddleware, async fu
         const date = req.query.date;
 
         if (date == undefined || appointment == undefined || date == undefined) return res.json({ success: false, message: 'Enter all params' });
-        const results = await db.sequelize.query("SELECT Clinics.id,Clinics.name,(SELECT  CONCAT_WS(', ',Locations.address,Locations.city,Locations.state) from Locations WHERE Locations.id = Clinics.location) as address from Clinics WHERE Clinics.id IN (SELECT DoctorData.clinic_id from DoctorData INNER JOIN DoctorSpecializations on DoctorData.user_id = DoctorSpecializations.doctor_id INNER JOIN Vacations ON Vacations.doctor_id = DoctorData.user_id WHERE DoctorSpecializations.id = :appointmentType AND Vacations.vacation_date != :searchDate) AND Clinics.name LIKE :clinicName;"
+        const results = await db.sequelize.query("SELECT Clinics.id,Clinics.name,(SELECT  CONCAT_WS(', ',Locations.address,Locations.city,Locations.state)  from Locations WHERE Locations.id = Clinics.location) as address from Clinics WHERE Clinics.id IN (SELECT DoctorData.clinic_id from DoctorData INNER JOIN DoctorSpecializations on DoctorData.user_id = DoctorSpecializations.doctor_id INNER JOIN Vacations ON Vacations.doctor_id = DoctorData.user_id WHERE DoctorSpecializations.id = :appointmentType AND Vacations.vacation_date != :searchDate) AND Clinics.name LIKE :clinicName;"
             , {
                 replacements: { searchDate: date, appointmentType: appointment, clinicName: name + '%' },
                 type: QueryTypes.SELECT
@@ -101,6 +102,7 @@ router.get('/filterClinics', JWT.authMiddleware, JWT.patientMiddleware, async fu
         res.json({ success: true, clinics: results });
     }
     catch (error) {
+        console.error(error);
         next(error);
     }
 });
@@ -247,11 +249,31 @@ router.get('/doctorTimeTable/:doctorId', JWT.authMiddleware, JWT.patientMiddlewa
     }
 });
 
+//check if clinic is rated
+router.get('/isclinicrated/:clinicId', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+    try {
+        const clinicId = req.params.clinicId;
+        const userId = req.user.userId;
+        
+        let result = await db.sequelize.query("SELECT COUNT(*) as scheduled FROM Schedules INNER JOIN DoctorData ON Schedules.doctorId = DoctorData.user_id WHERE Schedules.patienId =:userId AND DoctorData.clinic_id = :clinicId AND Schedules.end_timestamp < CURRENT_TIMESTAMP();"
+            , {replacements: {userId: userId, clinicId:clinicId },type: QueryTypes.SELECT});;
+        if(result[0].scheduled == 0) return res.json({success:false,message:'Dont have schduled in this clinic'});
+        result = await ClinicGrade.findOne({where:{clinic_id:clinicId,user_id:userId}});
+        console.log(result);
+        return res.json({success:true,isRated:result == null ? true : false});
+    }
+    catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+
 //rate clinic
 router.post('/clinicrate/:clinicId', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
     try {
         const clinicId = req.params.clinicId;
-        const rate = req.query.rate;
+        const rate = req.body.rate;
         const userId = req.user.userId;
 
         if(rate == undefined) return res.json({success:false,message:'No rate mark'});
