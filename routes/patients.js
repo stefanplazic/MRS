@@ -303,7 +303,7 @@ router.post('/clinicrate/:clinicId', JWT.authMiddleware, JWT.patientMiddleware, 
 router.get('/doctorlist', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
     try {
         const userId = req.user.userId;
-        var results = await db.sequelize.query("SELECT DISTINCT Users.id,Users.fName, Users.lName FROM Users INNER JOIN Schedules ON Users.id = Schedules.doctorId WHERE Schedules.end_timestamp < CURRENT_TIMESTAMP() AND Schedules.patienId = :userId;"
+        var results = await db.sequelize.query("SELECT DISTINCT Users.id,Users.fName, Users.lName FROM Users INNER JOIN Schedules ON Users.id = Schedules.doctorId WHERE Schedules.end_timestamp < CURRENT_TIMESTAMP() AND Schedules.patienId = :userId AND Users.id NOT IN (SELECT DoctorGrades.doctor_id FROM DoctorGrades WHERE DoctorGrades.user_id = :userId);"
             , {replacements: { userId:userId },type: QueryTypes.SELECT}
             );
         res.json({ success: true, doctors:results });
@@ -318,9 +318,8 @@ router.post('/rateDoctor/:doctorId', JWT.authMiddleware, JWT.patientMiddleware, 
     try {
         const userId = req.user.userId;
         const doctorId = req.params.doctorId;
-        const rate = req.body.rate;
+        const rate = parseInt(req.body.rate);
         let results;
-        console.log(rate);
         if(rate == undefined || !Number.isInteger(rate) || rate < 1 || rate > 6) return res.json({success:false,message:'Not valid rate'});
         //check if user had already voted
         results = await DoctorGrade.findOne({where:{doctor_id:doctorId,user_id:userId}});

@@ -51,6 +51,7 @@
             });
             getSpecialisations();
             getAppointmentsHistory();
+            getDoctorsRate();
             
         }
 
@@ -59,6 +60,60 @@
             localStorage.removeItem('userData');
             checkIfLogged();
 
+        }
+
+        async function getDoctorsRate() {
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/doctorlist';
+            fetch(url, { method: 'GET', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        return;
+                    }
+                    initDoctorTable(result.doctors);
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
+         }
+
+         function initDoctorTable(dataArray) {
+            var table = $('#rateDocTable').DataTable();
+            table.clear().draw();
+            //curent Date
+            for(var index in dataArray){
+                var item = dataArray[index];
+                const link = "<a href='#' onclick='rateDoc("+item.id+")'>Rate</a>";
+                table.row.add([item.fName,item.lName,link]).draw(false);
+            }
+            }
+
+            function rateDoc(docId){
+                
+                $('#doctorRateModal').modal('show');
+                $('#doctorRate').on('change', function() {
+                    sendRateDoctor(docId,this.value);
+                    
+                });
+            }
+
+        async function sendRateDoctor(doctorId,rateValue){
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/rateDoctor/'+doctorId;
+            fetch(url, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt },body: JSON.stringify({rate:rateValue}) })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    $('#doctorRateModal').modal('hide');
+                    getDoctorsRate();
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
         }
 
         async function getAppointmentsHistory() {
@@ -513,9 +568,22 @@
                     
                    
                 </table>
+
+                <!-- DOCTORS -->
+                <h3 class="mt-5 mb-2">Rate doctors</h3>
+                <table class="table table-striped" id="rateDocTable">
+                    <thead>
+                        <tr>
+                            <th  data-field="fName">First name</th>
+                            <th  data-field="lName">Last name</th>
+                            <th  data-field="button">Cancel</th>
+                        </tr>
+                    </thead>
+                </table>
             </div>
 
         </div>
+
         <!--MODAL -->
         <div class="modal" tabindex="-1" role="dialog" id="rateModal">
   <div class="modal-dialog" role="document">
@@ -545,6 +613,37 @@
     </div>
   </div>
 </div>
+
+<!-- DOCTOR MODAL -->
+        <div class="modal" tabindex="-1" role="dialog" id="doctorRateModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Please rate</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+        <div class="ui-widget">
+          
+          <select id="doctorRate">
+            <option selected="true" disabled>Choose rate</option>
+            <option value="1">Give rate of 1</option>
+            <option value="2">Give rate of 2</option>
+            <option value="3">Give rate of 3</option>
+            <option value="4">Give rate of 4</option>
+            </select>
+</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- END OF MODAL -->
 
     </div>
     <script>
