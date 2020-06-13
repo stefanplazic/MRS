@@ -48,6 +48,33 @@
                 searchDoctors();
             });
         }
+
+        function reserve(){
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/schedule-appointment/';
+            const appointment = $('#appointmentSelect').val();
+            const startTime = window.starTime;
+            const doctorId = window.doctorId;
+            fetch(url, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, body: JSON.stringify({
+                    "doctorId":10,
+                    "start_timestamp":"2020-06-13 00:00:000Z",
+                    "end_timestamp":"2020-06-13 00:30:000Z",
+                    "scheduleType":1
+            })})
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        return;
+                    }
+                  showSlots(result.aviability);  
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
+        }
+
         function searchDoctors(){
             const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
             const url = window.location.origin + '/patients/doctors/'+window.clinicId+'?specialisationType='+$('#appointmentSelect').val()+'&date='+$('#clinicDate').val();
@@ -77,6 +104,7 @@
             }
         }
         function checkDates(doctorId){
+            window.doctorId = doctorId;
             const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
             const url = window.location.origin + '/patients/doctorTimeTable/'+doctorId+'?date='+$('#clinicDate').val();
             fetch(url, { method: 'GET', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
@@ -95,6 +123,7 @@
         }
 
         function showSlots(aviability){
+            console.log(aviability);
             const slotsValues = aviability.map(slot => {
                 const date = new Date(slot);
                 return  {value:slot,name:date.getHours() + ':'+ date.getMinutes()};
@@ -109,8 +138,9 @@
                 dropdown.append($('<option></option>').attr('value', elem.value).text(elem.name));
             });
             $("#slots").change(function () {
-                var end = this.value;
-                console.log(end);
+                var starTime = this.value;
+                window.starTime = starTime;
+                
     });
             $('#slotModal').modal('show');
         }
@@ -318,7 +348,7 @@
 </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-primary">Make appointment</button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
     </div>

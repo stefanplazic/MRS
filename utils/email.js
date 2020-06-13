@@ -60,3 +60,24 @@ exports.resetPassword = function (user) {
         }
     });
 };
+
+exports.sendAdminMail = function (message,admins){
+    let emails = '';
+    for(var i=0;i<admins.length;i++)
+        emails += admins[i].email;
+        if(i < admins.length - 1)
+            emails += ', '
+
+    let mailOptions = {
+        from: '"MRS Hospital 👻" nekiludtim@gmail.com', // sender address
+        to: emails,
+        subject: 'Appointment request', // Subject line
+        html: message // html body
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+            console.log(error);
+        }
+    });
+}

@@ -13,6 +13,9 @@ var Clinic = require('../models').Clinic;
 var Dates = require('../utils/date');
 var ClinicGrade = require('../models').ClinicGrade;
 var DoctorGrade = require('../models').DoctorGrade;
+var ScheduleType = require('../models').ScheduleType;
+var DoctorData = require('../models').DoctorData;
+var Email = require('../utils/email');
 
 /*GET USER PROFILE DATA INFO*/
 router.get('/profileData', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
@@ -328,6 +331,39 @@ router.post('/rateDoctor/:doctorId', JWT.authMiddleware, JWT.patientMiddleware, 
         results = await DoctorGrade.create({doctor_id:doctorId,user_id:userId,grade:rate});
         res.json({ success: true, result:results });
       }
+    catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+router.post('/schedule-appointment/', JWT.authMiddleware, JWT.patientMiddleware, async function (req, res, next) {
+    try {
+        const body = req.body;
+        const userId = req.user.userId;
+        const start_timestamp = body.start_timestamp;
+        let end_timestamp = body.end_timestamp;
+        const doctorId  = body.doctorId;
+        const scheduleType= body.scheduleType;
+        if(scheduleType == undefined) return res.json({success:false,message:'No scheduleType'});
+        end_timestamp = await DoctorData.findOne({where:{user_id:doctorId}});
+        end_timestamp = end_timestamp.timeslot_per_client;
+        end_timestamp = new Date(new Date(start_timestamp).getTime() + end_timestamp*60000);
+        let result = await Specialization.findOne({where:{id:scheduleType}});
+        if(result == null) return res.json({success:false,message:'No such scheduleType'});
+        const check = await db.sequelize.query("SELECT COUNT(*) as vot FROM Schedules WHERE Schedules.start_timestamp = :start_timestamp AND Schedules.patienId = :userId AND Schedules.doctorId = :doctorId;"
+            , {replacements: { userId:userId,doctorId:doctorId,start_timestamp:start_timestamp },type: QueryTypes.SELECT}
+            );
+        if(check[0].vot != 0) return res.json({success:false,message:'Taken appointment'});
+        result = await Schedule.create({patienId:userId,doctorId:doctorId,start_timestamp:start_timestamp,end_timestamp:end_timestamp,price:1000,scheduleType:result.name,reserved:false});
+        res.json({ success: true, result:result });
+        result = await db.sequelize.query("SELECT Users.email FROM Users INNER JOIN Roles ON Users.role_id = Roles.id WHERE Roles.name = 'clinic_center_admin';"
+            , {type: QueryTypes.SELECT}
+            );
+         
+        //send email to admins
+        Email.sendAdminMail('User with id just registerd',result);
+         }
     catch (error) {
         console.error(error);
         next(error);

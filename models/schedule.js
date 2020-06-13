@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
     start_timestamp: DataTypes.DATE,
     end_timestamp: DataTypes.DATE,
     roomId: {
-      allowNull: false,
+      allowNull: true,
       type: DataTypes.INTEGER,
       references: {
         model: 'Rooms',
