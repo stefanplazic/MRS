@@ -35,6 +35,7 @@
             init();
             getPatienProfile();
             getClinicList();
+            loadMedicalRecord();
         });
         function init() {
             hideError();
@@ -78,6 +79,46 @@
                 .catch(function (err) {
                     console.error(err);
                 });
+         }
+
+         async function loadMedicalRecord() {
+            const jwt = JSON.parse(localStorage.getItem('userData')).jwt;
+            const url = window.location.origin + '/patients/medical-record';
+            fetch(url, { method: 'GET', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, })
+                .then(function (result) {
+                    return result.json();
+                })
+                .then(function (result) {
+                    if (!result.success) {
+                        return;
+                    }
+                    populateMedicalInfo(result.medicalRecord[0]);
+                    populateMedAppoint(result.schedules);
+                })
+                .catch(function (err) {
+                    console.error(err);
+                });
+         }
+
+         function populateMedicalInfo(medicalInfo){
+            $("#medHistory").text(medicalInfo.medical_history);
+            $("#height").text(medicalInfo.height);
+            $("#weight").text(medicalInfo.weight);
+            $("#bloodtype").text(medicalInfo.blood_type);
+            $("#diopter").text(medicalInfo.diopter);
+         }
+
+         function populateMedAppoint(appointments){
+            let htmlString = "<hr/>";
+            for(var i=0;i<appointments.length;i++){
+                const appo = appointments[i];
+                htmlString += "<div>Appointment type: "+appo.scheduleType+"</div>"
+                htmlString += "<div>Room: "+appo.label+"</div>"
+                htmlString += "<div>Doctor: "+appo.fName+" "+appo.lName+"</div>"
+                htmlString += "<div>Date: "+new Date(appo.start_timestamp).toDateString()+"</div>"
+                htmlString += "<hr/>"
+            }
+            $("#medappoint").html(htmlString);
          }
 
          function initDoctorTable(dataArray) {
@@ -430,6 +471,9 @@
             <li class="nav-item">
                 <a class="nav-link" href="#appHistory">Appointments history</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#medicalRecord">Medical record</a>
+            </li>
         </ul>
 
         <!-- Tab panes -->
@@ -580,6 +624,25 @@
                         </tr>
                     </thead>
                 </table>
+            </div>
+
+            <div id="medicalRecord" class="container tab-pane fade">
+                <h4>Medical info</h4>
+                <br />
+                Medical History : <span id='medHistory' class="ml-3"></span>
+                </br>
+                Height : <span id='height' class="ml-3 "></span>
+                </br>
+                Weight : <span id='weight' class="ml-3"></span>
+                </br>
+                Blood type : <span id='bloodtype' class="ml-3"></span>
+                </br>
+                Diopter : <span id='diopter' class="ml-3"></span>
+                </br>
+                <h4 class="mt-5">Appointments</h4>
+      
+                <div id="medappoint"></div>
+               
             </div>
 
         </div>

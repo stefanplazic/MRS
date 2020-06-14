@@ -399,4 +399,19 @@ router.get('/decline-appointment/:scheduleId',  async function (req, res, next) 
     }
 });
 
+router.get('/medical-record', JWT.authMiddleware, JWT.patientMiddleware,  async function (req, res, next) {
+    try {
+        const userId = req.user.userId;
+        const medicalRecord = await db.sequelize.query("SELECT * FROM MedicalRecords  WHERE MedicalRecords.patient_id = :userId;"
+            , {replacements: { userId:userId},type: QueryTypes.SELECT});
+        const schedules = await db.sequelize.query("SELECT * FROM Schedules INNER JOIN Users ON Users.id = Schedules.doctorId INNER JOIN Rooms ON Rooms.id = Schedules.roomId WHERE Schedules.patienId =:userId AND Schedules.reserved"
+            , {replacements: { userId:userId},type: QueryTypes.SELECT});
+        res.json({ success: true, medicalRecord:medicalRecord,schedules:schedules });
+         }
+    catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
 module.exports = router;
