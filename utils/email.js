@@ -62,15 +62,10 @@ exports.resetPassword = function (user) {
 };
 
 exports.sendAdminMail = function (message,admins){
-    let emails = '';
-    for(var i=0;i<admins.length;i++)
-        emails += admins[i].email;
-        if(i < admins.length - 1)
-            emails += ', '
-
+    let email = admins[0].email;
     let mailOptions = {
         from: '"MRS Hospital 👻" nekiludtim@gmail.com', // sender address
-        to: emails,
+        to: email,
         subject: 'Appointment request', // Subject line
         html: message // html body
     };

@@ -6,6 +6,7 @@ var JWT = require('../utils/jwt');
 var Email = require('../utils/email');
 var TokenHelper = require('../utils/token');
 var Token = require('../models').Token;
+var Schedule = require('../models').Schedule;
 
 router.get('/pendusers', JWT.authMiddleware, JWT.centerAdminMiddleware, async function (req, res, next) {
     try {
@@ -57,6 +58,20 @@ router.put('/declineuser', JWT.authMiddleware, JWT.centerAdminMiddleware, async 
         //send email to user
         Email.sendDeclineMessage(user.dataValues.email, resonText);;
         res.json({ success: true });
+    }
+    catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+router.put('/accept-appointment/appointmentId', JWT.authMiddleware, JWT.centerAdminMiddleware, async function (req, res, next) {
+    try {
+        const appointmentId = req.params.appointmentId;
+        const roomId = req.body.roomId;
+        const result = await Schedule.update({roomId:roomId},{where:{id:roomId}});
+        //send email to user
+        res.json({ success: true,result:result });
     }
     catch (error) {
         console.error(error);

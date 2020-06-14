@@ -56,10 +56,9 @@
             const startTime = window.starTime;
             const doctorId = window.doctorId;
             fetch(url, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, body: JSON.stringify({
-                    "doctorId":10,
-                    "start_timestamp":"2020-06-13 00:00:000Z",
-                    "end_timestamp":"2020-06-13 00:30:000Z",
-                    "scheduleType":1
+                    "doctorId":doctorId,
+                    "start_timestamp":startTime,
+                    "scheduleType":appointment
             })})
                 .then(function (result) {
                     return result.json();
@@ -68,7 +67,8 @@
                     if (!result.success) {
                         return;
                     }
-                  showSlots(result.aviability);  
+                  console.log(result);
+                  $('#slotModal').modal('hide');
                 })
                 .catch(function (err) {
                     console.error(err);
@@ -123,7 +123,6 @@
         }
 
         function showSlots(aviability){
-            console.log(aviability);
             const slotsValues = aviability.map(slot => {
                 const date = new Date(slot);
                 return  {value:slot,name:date.getHours() + ':'+ date.getMinutes()};
@@ -348,7 +347,7 @@
 </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary">Make appointment</button>
+        <button type="button" class="btn btn-primary" onclick="reserve();">Make appointment</button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
     </div>

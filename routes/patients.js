@@ -341,14 +341,18 @@ router.post('/schedule-appointment/', JWT.authMiddleware, JWT.patientMiddleware,
     try {
         const body = req.body;
         const userId = req.user.userId;
-        const start_timestamp = body.start_timestamp;
-        let end_timestamp = body.end_timestamp;
+        let start_timestamp = new Date();
+        start_timestamp.setHours(new Date(body.start_timestamp).getHours()+2);
+        start_timestamp.setMinutes(new Date(body.start_timestamp).getMinutes());
+        start_timestamp.setSeconds(0);
+        let end_timestamp;
         const doctorId  = body.doctorId;
         const scheduleType= body.scheduleType;
         if(scheduleType == undefined) return res.json({success:false,message:'No scheduleType'});
         end_timestamp = await DoctorData.findOne({where:{user_id:doctorId}});
         end_timestamp = end_timestamp.timeslot_per_client;
-        end_timestamp = new Date(new Date(start_timestamp).getTime() + end_timestamp*60000);
+        end_timestamp = new Date(start_timestamp.getTime() + end_timestamp*60000);
+        console.log(start_timestamp+'-----'+end_timestamp);
         let result = await Specialization.findOne({where:{id:scheduleType}});
         if(result == null) return res.json({success:false,message:'No such scheduleType'});
         const check = await db.sequelize.query("SELECT COUNT(*) as vot FROM Schedules WHERE Schedules.start_timestamp = :start_timestamp AND Schedules.patienId = :userId AND Schedules.doctorId = :doctorId;"
@@ -362,7 +366,7 @@ router.post('/schedule-appointment/', JWT.authMiddleware, JWT.patientMiddleware,
             );
          
         //send email to admins
-        Email.sendAdminMail('User with id just registerd',result);
+        Email.sendAdminMail('New appointment request',result);
          }
     catch (error) {
         console.error(error);
