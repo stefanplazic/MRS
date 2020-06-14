@@ -44,22 +44,6 @@ exports.sendDeclineMessage = function (userEmail, resonText) {
     });
 };
 
-/*function sending reset password mail*/
-exports.resetPassword = function (user) {
-    var link = hostInfo.host + 'html/resetPass.html?token=' + user.resetPasswordToken;
-
-    let mailOptions = {
-        from: '"MRS Hospital 👻" nekiludtim@gmail.com', // sender address
-        to: user.email, // list of receivers
-        subject: 'Password reset link ✔', // Subject line
-        html: "<b>" + user.username + "</b>" + " if you had request password reset - feel free to click on the <a href=" + link + ">link</a> <p>Otherwise just ignore it  😋 </p>" // html body
-    };
-    transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-            console.log(error);
-        }
-    });
-};
 
 exports.sendAdminMail = function (message,admins){
     let email = admins[0].email;
