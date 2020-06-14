@@ -341,7 +341,7 @@ router.post('/schedule-appointment/', JWT.authMiddleware, JWT.patientMiddleware,
     try {
         const body = req.body;
         const userId = req.user.userId;
-        let start_timestamp = new Date();
+        let start_timestamp = new Date(body.date);
         start_timestamp.setHours(new Date(body.start_timestamp).getHours()+2);
         start_timestamp.setMinutes(new Date(body.start_timestamp).getMinutes());
         start_timestamp.setSeconds(0);
@@ -352,7 +352,6 @@ router.post('/schedule-appointment/', JWT.authMiddleware, JWT.patientMiddleware,
         end_timestamp = await DoctorData.findOne({where:{user_id:doctorId}});
         end_timestamp = end_timestamp.timeslot_per_client;
         end_timestamp = new Date(start_timestamp.getTime() + end_timestamp*60000);
-        console.log(start_timestamp+'-----'+end_timestamp);
         let result = await Specialization.findOne({where:{id:scheduleType}});
         if(result == null) return res.json({success:false,message:'No such scheduleType'});
         const check = await db.sequelize.query("SELECT COUNT(*) as vot FROM Schedules WHERE Schedules.start_timestamp = :start_timestamp AND Schedules.patienId = :userId AND Schedules.doctorId = :doctorId;"
@@ -367,6 +366,32 @@ router.post('/schedule-appointment/', JWT.authMiddleware, JWT.patientMiddleware,
          
         //send email to admins
         Email.sendAdminMail('New appointment request',result);
+         }
+    catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+router.get('/approve-appointment/:scheduleId', async function (req, res, next) {
+    try {
+        const scheduleId = req.params.scheduleId;
+        await Schedule.update({reserved:true},{where:{id:scheduleId}});
+        res.json({ success: true, message:'Approved' });
+      }
+    catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+router.get('/decline-appointment/:scheduleId',  async function (req, res, next) {
+    try {
+        const scheduleId = req.params.scheduleId;
+        const result = await Schedule.findOne({where:{id:scheduleId}});
+        if(result.dataValues.reserved == true) return res.json({ success: false, message:'Allready accepted' });
+        await Schedule.destroy({where:{id:scheduleId}});
+        res.json({ success: true, message:'Declined' });
          }
     catch (error) {
         console.error(error);

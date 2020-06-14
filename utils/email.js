@@ -1,5 +1,5 @@
 var nodemailer = require('nodemailer');
-
+const linkConst='http://localhost:3000/';
 // Create a SMTP transport object
 var transporter = nodemailer.createTransport({
     service: 'Gmail',
@@ -15,7 +15,7 @@ var transporter = nodemailer.createTransport({
 
 /*function for sending verification emails*/
 exports.sendVerification = function (user, token) {
-    var link = 'http://localhost:3000/users/verify/' + token;
+    var link = linkConst+'users/verify/' + token;
 
     let mailOptions = {
         from: '"MRS Hospital 👻" nekiludtim@gmail.com', // sender address
@@ -67,7 +67,39 @@ exports.sendAdminMail = function (message,admins){
         from: '"MRS Hospital 👻" nekiludtim@gmail.com', // sender address
         to: email,
         subject: 'Appointment request', // Subject line
-        html: message // html body
+        html: "You have appointment request" // html body
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+            console.log(error);
+        }
+    });
+}
+
+exports.approveSchedule = function (schedule,patientEmail){
+    var acceptlink = linkConst+'patients/approve-appointment/' + schedule.dataValues.id;
+    var declinelink = linkConst+'patients/decline-appointment/' + schedule.dataValues.id;
+    let mailOptions = {
+        from: '"MRS Hospital 👻" nekiludtim@gmail.com', // sender address
+        to: patientEmail,
+        subject: 'Accept or decline schedule', // Subject line
+        html: "Admin approved your appointment.  You can <a href=" + acceptlink + ">accept</a> or <a href=" + declinelink + ">decline</a>"
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+            console.log(error);
+        }
+    });
+}
+
+exports.notifyDoctor = function (schedule,doctorEmail){
+    let mailOptions = {
+        from: '"MRS Hospital 👻" nekiludtim@gmail.com', // sender address
+        to: doctorEmail,
+        subject: 'Appointment info', // Subject line
+        html: "you have appointment come soon " + schedule.dataValues.start_timestamp
     };
 
     transporter.sendMail(mailOptions, function (error, info) {

@@ -58,7 +58,9 @@
             fetch(url, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/json', 'authorization': jwt }, body: JSON.stringify({
                     "doctorId":doctorId,
                     "start_timestamp":startTime,
-                    "scheduleType":appointment
+                    "scheduleType":appointment,
+                    "date":$('#clinicDate').val()
+
             })})
                 .then(function (result) {
                     return result.json();

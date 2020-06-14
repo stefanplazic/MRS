@@ -65,13 +65,19 @@ router.put('/declineuser', JWT.authMiddleware, JWT.centerAdminMiddleware, async 
     }
 });
 
-router.put('/accept-appointment/appointmentId', JWT.authMiddleware, JWT.centerAdminMiddleware, async function (req, res, next) {
+router.put('/accept-appointment/:appointmentId', JWT.authMiddleware, JWT.centerAdminMiddleware, async function (req, res, next) {
     try {
         const appointmentId = req.params.appointmentId;
         const roomId = req.body.roomId;
-        const result = await Schedule.update({roomId:roomId},{where:{id:roomId}});
-        //send email to user
+        let result = await Schedule.update({roomId:roomId},{where:{id:appointmentId}});
         res.json({ success: true,result:result });
+        
+        result = await Schedule.findOne({where:{id:appointmentId}});
+        let patient = await  User.findOne({where:{id:result.dataValues.patienId}});
+        let doctor =  await User.findOne({where:{id:result.dataValues.doctorId}});
+        //send email to patient and doctor
+        Email.approveSchedule(result,patient.dataValues.email);
+        Email.notifyDoctor(result,doctor.dataValues.email);
     }
     catch (error) {
         console.error(error);
