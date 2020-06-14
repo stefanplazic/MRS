@@ -53,6 +53,8 @@ If you need to update `npm`, you can make it using `npm`! Cool right? After runn
     $ cd MRS
     $ yarn install
 
+## Database test script
+  Inside testdata folder there is populate.sql script
 
 ## Running the project
 
